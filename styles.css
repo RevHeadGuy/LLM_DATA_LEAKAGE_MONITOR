@@ -1,0 +1,119 @@
+/* Toast Notification Styles */
+.toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background-color: #ff4444;
+  color: white;
+  padding: 15px 25px;
+  border-radius: 4px;
+  z-index: 10000;
+  font-family: Arial, sans-serif;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  animation: slideIn 0.5s ease-out;
+}
+
+/* Sensitive Data Highlight Styles */
+.sensitive-data-highlight {
+  background-color: rgba(255, 0, 0, 0.1);
+  border-bottom: 2px solid red;
+  padding: 2px;
+  position: relative;
+}
+
+/* Warning Icon Styles */
+.sensitive-data-warning {
+  position: absolute;
+  top: -20px;
+  right: 0;
+  font-size: 16px;
+  cursor: pointer;
+  z-index: 1000;
+}
+
+/* Input Field Warning Styles */
+.input-warning {
+  border-bottom: 2px solid red !important;
+  background-color: rgba(255, 0, 0, 0.1) !important;
+  outline: none !important;
+}
+
+/* Animation Keyframes */
+@keyframes slideIn {
+  from { 
+    transform: translateX(100%); 
+    opacity: 0; 
+  }
+  to { 
+    transform: translateX(0); 
+    opacity: 1; 
+  }
+}
+
+@keyframes fadeOut {
+  from { 
+    opacity: 1; 
+  }
+  to { 
+    opacity: 0; 
+  }
+}
+
+/* Popup Styles */
+.popup-container {
+  width: 300px;
+  padding: 15px;
+  font-family: Arial, sans-serif;
+}
+
+.popup-title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.popup-stats {
+  margin-bottom: 15px;
+  padding: 10px;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+}
+
+.toggle-switch {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.toggle-switch label {
+  margin-right: 10px;
+}
+
+/* Button Styles */
+.button {
+  padding: 8px 15px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.button-primary {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.button-primary:hover {
+  background-color: #45a049;
+}
+
+.button-secondary {
+  background-color: #f44336;
+  color: white;
+}
+
+.button-secondary:hover {
+  background-color: #da190b;
+} 
