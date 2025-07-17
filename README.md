@@ -75,4 +75,4 @@ d) Review the output for detection statistics.
 
 2. All model files are stored in web_model/bert-tiny-ner/.
 
-3.No data ever leaves your machine.
+3. No data ever leaves your machine.
