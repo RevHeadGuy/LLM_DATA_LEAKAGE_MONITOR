@@ -17,3 +17,24 @@ It helps prevent accidental data leakage when using LLMs (like ChatGPT) or any w
 5. Offline & private: All detection runs locally in your browser; no data is sent to any server.
 
 6. Test & demo page: Includes a test page and scripts for evaluating detection accuracy.
+
+# Installation
+
+1. Clone or Download the Repository
+
+2. Install Dependencies :
+
+If you want to develop or test locally: npm install
+
+3. Load the Extension in Chrome
+   
+i) Open Chrome and go to chrome://extensions/
+
+ii) Enable Developer mode (top right)
+
+iii) Click Load unpacked
+
+iv) Select the project folder (llm-data-leakage-monitor)
+
+v)The extension is now active and will monitor all web pages.
+
