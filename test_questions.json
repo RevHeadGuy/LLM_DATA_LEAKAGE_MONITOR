@@ -1,0 +1,1002 @@
+[
+  {
+    "id": 1,
+    "text": "My office password is asdafsa. My email is test@example.com.",
+    "expected_detection": true
+  },
+  {
+    "id": 2,
+    "text": "My name is John Doe.",
+    "expected_detection": true
+  },
+  {
+    "id": 3,
+    "text": "My social security number is 123-45-6789.",
+    "expected_detection": true
+  },
+  {
+    "id": 4,
+    "text": "My address is 123 Main St, Anytown, CA 90210.",
+    "expected_detection": true
+  },
+  {
+    "id": 5,
+    "text": "My credit card number is 1111222233334444.",
+    "expected_detection": true
+  },
+  {
+    "id": 6,
+    "text": "Please call me at 555-123-4567.",
+    "expected_detection": true
+  },
+  {
+    "id": 7,
+    "text": "AWS Key: AKIAIOSFODNN7EXAMPLE.",
+    "expected_detection": true
+  },
+  {
+    "id": 8,
+    "text": "My secret phrase is 'open sesame'.",
+    "expected_detection": true
+  },
+  {
+    "id": 9,
+    "text": "Google API Key: AIzaSyA_B_C_D_E_F_G_H_I_J_K_L_M_N_O_P_Q_R_S_T_U_V_W_X_Y_Z.",
+    "expected_detection": true
+  },
+  {
+    "id": 10,
+    "text": "Secret key: sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.",
+    "expected_detection": true
+  },
+  {
+    "id": 11,
+    "text": "Here is a 32-character hash: 0123456789abcdef0123456789abcdef.",
+    "expected_detection": true
+  },
+  {
+    "id": 12,
+    "text": "My birthdate is 01/01/1990.",
+    "expected_detection": true
+  },
+  {
+    "id": 13,
+    "text": "This is a 40-character token: 0123456789abcdef0123456789abcdef01234567.",
+    "expected_detection": true
+  },
+  {
+    "id": 14,
+    "text": "A 64-character string: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef.",
+    "expected_detection": true
+  },
+  {
+    "id": 15,
+    "text": "My API key is ABCDEFGHIJKLMNOP.",
+    "expected_detection": true
+  },
+  {
+    "id": 16,
+    "text": "My medical record number is MRN-007-XYZ.",
+    "expected_detection": true
+  },
+  {
+    "id": 17,
+    "text": "My secret_key is XYZ123ABC456DEF789.",
+    "expected_detection": true
+  },
+  {
+    "id": 18,
+    "text": "Access token: QWERTYUIOPASDFGHJKL.",
+    "expected_detection": true
+  },
+  {
+    "id": 19,
+    "text": "My employee ID is EMP-12345.",
+    "expected_detection": true
+  },
+  {
+    "id": 20,
+    "text": "My bank account number is 987654321.",
+    "expected_detection": true
+  },
+  {
+    "id": 21,
+    "text": "My driver's license number is D5432109.",
+    "expected_detection": true
+  },
+  {
+    "id": 22,
+    "text": "My passport number is P9876543.",
+    "expected_detection": true
+  },
+  {
+    "id": 23,
+    "text": "My mother's maiden name is Johnson.",
+    "expected_detection": true
+  },
+  {
+    "id": 24,
+    "text": "My current location is Latitude 34.0522, Longitude -118.2437.",
+    "expected_detection": true
+  },
+  {
+    "id": 25,
+    "text": "My medical condition is 'asthma'.",
+    "expected_detection": true
+  },
+  {
+    "id": 26,
+    "text": "My office password is 'secureP@ssw0rd'. My email is user@domain.com and SSN is 987-65-4321.",
+    "expected_detection": true
+  },
+  {
+    "id": 27,
+    "text": "My credit card is 5555 6666 7777 8888. Call me at +1 (123) 456-7890. My name is Alice.",
+    "expected_detection": true
+  },
+  {
+    "id": 28,
+    "text": "The client's address is 100 Main St, City, ST 12345. AWS Key: AKIAZAZAZAZAZAZAZAZA. Google API Key: AIza_00000000000000000000000000000000000.",
+    "expected_detection": true
+  },
+  {
+    "id": 29,
+    "text": "My system password is 'SystemP@ss'. Secret key: sk-abcdefghijklmnopqrstuvwxyzabcdef. Hash: 1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d.",
+    "expected_detection": true
+  },
+  {
+    "id": 30,
+    "text": "My birthdate is 10/10/1985. Token: 0123456789abcdef0123456789abcdef01234567. API_KEY = 'FINAL_API_KEY_ABC'.",
+    "expected_detection": true
+  },
+  {
+    "id": 31,
+    "text": "My personal email is private@mail.net. SECRET_KEY: 'another_secret_key_xyz'. Access token: 'my_access_token_value_123'.",
+    "expected_detection": true
+  },
+  {
+    "id": 32,
+    "text": "My SSN is 234-56-7890. My credit card is 1234-5678-9012-3456. My father's name is John.",
+    "expected_detection": true
+  },
+  {
+    "id": 33,
+    "text": "Call me at 0123456789. AWS Key: AKIAAAAAAAAAAAAAAAAA. Google API Key: AIza_12345678901234567890123456789012345.",
+    "expected_detection": true
+  },
+  {
+    "id": 34,
+    "text": "My address is 200 Pine St, Village, AZ 85001. Secret key: sk-12345678901234567890123456789012. Hash: abcdefghijklmnopqrstuvwxyzabcdef.",
+    "expected_detection": true
+  },
+  {
+    "id": 35,
+    "text": "My medical history notes 'diabetes'. Token: 0000000000000000000000000000000000000000. API_KEY = 'TEST_KEY_ALPHA_BETA'.",
+    "expected_detection": true
+  },
+  {
+    "id": 36,
+    "text": "My employee ID is E0001. SECRET_KEY: 'TEST_SECRET_KEY_123'. Access token: 'TEST_ACCESS_TOKEN_XYZ'.",
+    "expected_detection": true
+  },
+  {
+    "id": 37,
+    "text": "My email is support@example.co.uk. SSN: 345-67-8901. My mother's maiden name is Green.",
+    "expected_detection": true
+  },
+  {
+    "id": 38,
+    "text": "Credit card: 1111-2222-3333-4444. Phone: (012) 345-6789. My birth city is London.",
+    "expected_detection": true
+  },
+  {
+    "id": 39,
+    "text": "My current location is Latitude 40.7128, Longitude -74.0060. AWS Key: AKIAJJJJJJJJJJJJJJJJ. Google API Key: AIza_GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG.",
+    "expected_detection": true
+  },
+  {
+    "id": 40,
+    "text": "My password is 'MySafeP@ss'. Secret key: sk-KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK. Hash: LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL.",
+    "expected_detection": true
+  },
+  {
+    "id": 41,
+    "text": "My patient ID is PT-5678. Token: MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM. API_KEY = 'NNNNNNNNNNNNNNNNNNNN'.",
+    "expected_detection": true
+  },
+  {
+    "id": 42,
+    "text": "My home phone is 123-456-7890. SECRET_KEY: 'OOOOOOOOOOOOOOOOOOOO'. Access token: 'PPPPPPPPPPPPPPPPPPPP'.",
+    "expected_detection": true
+  },
+  {
+    "id": 43,
+    "text": "My email is info@test.biz. SSN: 456-78-9012. My address is 100 Main Street.",
+    "expected_detection": true
+  },
+  {
+    "id": 44,
+    "text": "Credit card: 9999 8888 7777 6666. Phone: 789.012.3456. My name is Emily White.",
+    "expected_detection": true
+  },
+  {
+    "id": 45,
+    "text": "My passport number is P9876543. AWS Key: AKIAQQQQQQQQQQQQQQQQ. Google API Key: AIza_RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR.",
+    "expected_detection": true
+  },
+  {
+    "id": 46,
+    "text": "My secret password is 'Secure!23'. Secret key: sk-SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS. Hash: TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT.",
+    "expected_detection": true
+  },
+  {
+    "id": 47,
+    "text": "My driver's license number is D9876543. Token: UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU. API_KEY = 'VVVVVVVVVVVVVVVVVVVV'.",
+    "expected_detection": true
+  },
+  {
+    "id": 48,
+    "text": "My date of birth is 07/04/1976. SECRET_KEY: 'WWWWWWWWWWWWWWWWWWWW'. Access token: 'XXXXXXXXXXXXXXXXXXXX'.",
+    "expected_detection": true
+  },
+  {
+    "id": 49,
+    "text": "My email is sales@solution.io. SSN: 567-89-0123. My address is 500 Park Avenue.",
+    "expected_detection": true
+  },
+  {
+    "id": 50,
+    "text": "Credit card: 1234-5678-9012-3456. Phone: +1-234-567-8901. My full name is David Brown.",
+    "expected_detection": true
+  },
+  {
+    "id": 51,
+    "text": "My medical record number is MRN-999. AWS Key: AKIAYYYYYYYYYYYYYYYY. Google API Key: AIZa_ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ.",
+    "expected_detection": true
+  },
+  {
+    "id": 52,
+    "text": "My password for the database is 'DbP@ssw0rd'. Secret key: sk-AAAAAAAAAAAAAAAABBBBBBBBBBBBBBBB. Hash: CCCCCCCCCCCCCCCC DDDDDDDDDDDDDDDD.",
+    "expected_detection": true
+  },
+  {
+    "id": 53,
+    "text": "My bank account number is 987654321. Token: EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE. API_KEY = 'FFFFFFFFFFFFFFFFFFFF'.",
+    "expected_detection": true
+  },
+  {
+    "id": 54,
+    "text": "The patient's condition is 'stable'. SECRET_KEY: 'GGGGGGGGGGGGGGGGGGGG'. Access token: 'HHHHHHHHHHHHHHHHHHHH'.",
+    "expected_detection": true
+  },
+  {
+    "id": 55,
+    "text": "My email is support@company.com. SSN: 678-90-1234. My mother's name is Sarah.",
+    "expected_detection": true
+  },
+  {
+    "id": 56,
+    "text": "Credit card: 1111 1111 1111 1111. Phone: (123) 456-7890. My home address is 1000 Elm Street.",
+    "expected_detection": true
+  },
+  {
+    "id": 57,
+    "text": "My employee ID is E5432. AWS Key: AKIAIIIIIIIIIIIIIIII. Google API Key: AIza_JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ.",
+    "expected_detection": true
+  },
+  {
+    "id": 58,
+    "text": "My password is 'ComplexP@ss'. Secret key: sk-KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK. Hash: LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL.",
+    "expected_detection": true
+  },
+  {
+    "id": 59,
+    "text": "My phone number is 999-888-7777. Token: MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM. API_KEY = 'NNNNNNNNNNNNNNNNNNNN'.",
+    "expected_detection": true
+  },
+  {
+    "id": 60,
+    "text": "My email is contact@service.biz. SSN: 789-01-2345. My father's name is Michael.",
+    "expected_detection": true
+  },
+  {
+    "id": 61,
+    "text": "Credit card: 2222-3333-4444-5555. Phone: 987.654.3210. My birthdate is 02/28/1985.",
+    "expected_detection": true
+  },
+  {
+    "id": 62,
+    "text": "My current location is Latitude 39.9526, Longitude -75.1652. AWS Key: AKIAQQQQQQQQQQQQQQQQ. Google API Key: AIza_RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR.",
+    "expected_detection": true
+  },
+  {
+    "id": 63,
+    "text": "My secret phrase is 'VerySecret'. Secret key: sk-SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS. Hash: TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT.",
+    "expected_detection": true
+  },
+  {
+    "id": 64,
+    "text": "My passport number is P0001112. Token: UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU. API_KEY = 'VVVVVVVVVVVVVVVVVVVV'.",
+    "expected_detection": true
+  },
+  {
+    "id": 65,
+    "text": "My medical condition is 'diabetes'. SECRET_KEY: 'WWWWWWWWWWWWWWWWWWWW'. Access token: 'XXXXXXXXXXXXXXXXXXXX'.",
+    "expected_detection": true
+  },
+  {
+    "id": 66,
+    "text": "My email is info@solution.org. SSN: 890-12-3456. My address is 2000 Broadway.",
+    "expected_detection": true
+  },
+  {
+    "id": 67,
+    "text": "Credit card: 6666 7777 8888 9999. Phone: +1 (555) 123-4567. My full name is Charlie Chaplin.",
+    "expected_detection": true
+  },
+  {
+    "id": 68,
+    "text": "My patient ID is PT-0001. AWS Key: AKIAYYYYYYYYYYYYYYYY. Google API Key: AIZa_ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ.",
+    "expected_detection": true
+  },
+  {
+    "id": 69,
+    "text": "My database password is 'DBP@ssw0rd!'. Secret key: sk-AAAAAAAAAAAAAAAABBBBBBBBBBBBBBBB. Hash: CCCCCCCCCCCCCCCC DDDDDDDDDDDDDDDD.",
+    "expected_detection": true
+  },
+  {
+    "id": 70,
+    "text": "My driver's license number is D0000001. Token: EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE. API_KEY = 'FFFFFFFFFFFFFFFFFFFF'.",
+    "expected_detection": true
+  },
+  {
+    "id": 71,
+    "text": "The client's name is Mary Jones. SECRET_KEY: 'GGGGGGGGGGGGGGGGGGGG'. Access token: 'HHHHHHHHHHHHHHHHHHHH'.",
+    "expected_detection": true
+  },
+  {
+    "id": 72,
+    "text": "My email is dev@portal.io. SSN: 901-23-4567. My home phone is (333) 444-5555.",
+    "expected_detection": true
+  },
+  {
+    "id": 73,
+    "text": "My date of birth is 09/01/1965. Credit card: 1234-1234-1234-1234. Phone: (000) 111-2222.",
+    "expected_detection": true
+  },
+  {
+    "id": 74,
+    "text": "My mother's maiden name is Smith. AWS Key: AKIAIIIIIIIIIIIIIIII. Google API Key: AIza_JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ.",
+    "expected_detection": true
+  },
+  {
+    "id": 75,
+    "text": "The system password is 'AdminP@ss'. Secret key: sk-KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK. Hash: LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL.",
+    "expected_detection": true
+  },
+  {
+    "id": 76,
+    "text": "My medical history notes 'hypertension'. Token: MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM. API_KEY = 'NNNNNNNNNNNNNNNNNNNN'.",
+    "expected_detection": true
+  },
+  {
+    "id": 77,
+    "text": "My address is 3000 Sunset Blvd, Hollywood, CA 90028. SECRET_KEY: 'OOOOOOOOOOOOOOOOOOOO'. Access token: 'PPPPPPPPPPPPPPPPPPPP'.",
+    "expected_detection": true
+  },
+  {
+    "id": 78,
+    "text": "My email is admin@example.com. SSN: 012-34-5678. My father's name is William.",
+    "expected_detection": true
+  },
+  {
+    "id": 79,
+    "text": "Credit card: 3333 4444 5555 6666. Phone: 123.456.7890. My birth city is Paris.",
+    "expected_detection": true
+  },
+  {
+    "id": 80,
+    "text": "My current location is Latitude 34.0522, Longitude -118.2437. AWS Key: AKIAQQQQQQQQQQQQQQQQ. Google API Key: AIza_RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR.",
+    "expected_detection": true
+  },
+  {
+    "id": 81,
+    "text": "My password is 'SuperSecure!'. Secret key: sk-SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS. Hash: TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT.",
+    "expected_detection": true
+  },
+  {
+    "id": 82,
+    "text": "My employee ID is EMP-999. Token: UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU. API_KEY = 'VVVVVVVVVVVVVVVVVVVV'.",
+    "expected_detection": true
+  },
+  {
+    "id": 83,
+    "text": "My home phone is 555-444-3333. SECRET_KEY: 'WWWWWWWWWWWWWWWWWWWW'. Access token: 'XXXXXXXXXXXXXXXXXXXX'.",
+    "expected_detection": true
+  },
+  {
+    "id": 84,
+    "text": "My email is info@company.net. SSN: 123-45-6789. My address is 4000 Ocean Drive.",
+    "expected_detection": true
+  },
+  {
+    "id": 85,
+    "text": "Credit card: 7777-8888-9999-0000. Phone: +1-987-654-3210. My full name is George Washington.",
+    "expected_detection": true
+  },
+  {
+    "id": 86,
+    "text": "My patient ID is PT-1111. AWS Key: AKIAYYYYYYYYYYYYYYYY. Google API Key: AIZa_ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ.",
+    "expected_detection": true
+  },
+  {
+    "id": 87,
+    "text": "My secret password is 'UltraSecret'. Secret key: sk-AAAAAAAAAAAAAAAABBBBBBBBBBBBBBBB. Hash: CCCCCCCCCCCCCCCC DDDDDDDDDDDDDDDD.",
+    "expected_detection": true
+  },
+  {
+    "id": 88,
+    "text": "My passport number is P7654321. Token: EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE. API_KEY = 'FFFFFFFFFFFFFFFFFFFF'.",
+    "expected_detection": true
+  },
+  {
+    "id": 89,
+    "text": "My date of birth is 11/11/1950. SECRET_KEY: 'GGGGGGGGGGGGGGGGGGGG'. Access token: 'HHHHHHHHHHHHHHHHHHHH'.",
+    "expected_detection": true
+  },
+  {
+    "id": 90,
+    "text": "My email is sales@example.org. SSN: 234-56-7890. My address is 5000 River Road.",
+    "expected_detection": true
+  },
+  {
+    "id": 91,
+    "text": "Credit card: 1234 5678 9012 3456. Phone: (222) 333-4444. My full name is Abraham Lincoln.",
+    "expected_detection": true
+  },
+  {
+    "id": 92,
+    "text": "My medical record number is MRN-000. AWS Key: AKIAIIIIIIIIIIIIIIII. Google API Key: AIza_JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ.",
+    "expected_detection": true
+  },
+  {
+    "id": 93,
+    "text": "My password for the server is 'ServerP@ss'. Secret key: sk-KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK. Hash: LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL.",
+    "expected_detection": true
+  },
+  {
+    "id": 94,
+    "text": "My driver's license number is D8765432. Token: MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM. API_KEY = 'NNNNNNNNNNNNNNNNNNNN'.",
+    "expected_detection": true
+  },
+  {
+    "id": 95,
+    "text": "The patient's condition is 'critical'. SECRET_KEY: 'OOOOOOOOOOOOOOOOOOOO'. Access token: 'PPPPPPPPPPPPPPPPPPPP'.",
+    "expected_detection": true
+  },
+  {
+    "id": 96,
+    "text": "My email is contact@test.com. SSN: 345-67-8901. My mother's maiden name is White.",
+    "expected_detection": true
+  },
+  {
+    "id": 97,
+    "text": "Credit card: 1111-2222-3333-4444. Phone: 555.666.7777. My home address is 6000 Lake Shore Drive.",
+    "expected_detection": true
+  },
+  {
+    "id": 98,
+    "text": "My bank account number is 123123123. AWS Key: AKIAQQQQQQQQQQQQQQQQ. Google API Key: AIza_RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR.",
+    "expected_detection": true
+  },
+  {
+    "id": 99,
+    "text": "My password is 'Admin123!'. Secret key: sk-SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS. Hash: TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT.",
+    "expected_detection": true
+  },
+  {
+    "id": 100,
+    "text": "My employee ID is E0001. Token: UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU. API_KEY = 'VVVVVVVVVVVVVVVVVVVV'.",
+    "expected_detection": true
+  },
+  {
+    "id": 101,
+    "text": "The quick brown fox jumps over the lazy dog.",
+    "expected_detection": false
+  },
+  {
+    "id": 102,
+    "text": "What time is it right now?",
+    "expected_detection": false
+  },
+  {
+    "id": 103,
+    "text": "I enjoy reading books in the evening.",
+    "expected_detection": false
+  },
+  {
+    "id": 104,
+    "text": "The weather today is sunny and warm.",
+    "expected_detection": false
+  },
+  {
+    "id": 105,
+    "text": "Please tell me a joke.",
+    "expected_detection": false
+  },
+  {
+    "id": 106,
+    "text": "The capital of France is Paris.",
+    "expected_detection": false
+  },
+  {
+    "id": 107,
+    "text": "I like to listen to music.",
+    "expected_detection": false
+  },
+  {
+    "id": 108,
+    "text": "This is a simple sentence.",
+    "expected_detection": false
+  },
+  {
+    "id": 109,
+    "text": "Birds can fly high in the sky.",
+    "expected_detection": false
+  },
+  {
+    "id": 110,
+    "text": "Water is essential for life.",
+    "expected_detection": false
+  },
+  {
+    "id": 111,
+    "text": "The dog barks loudly at strangers.",
+    "expected_detection": false
+  },
+  {
+    "id": 112,
+    "text": "I am going to the store to buy groceries.",
+    "expected_detection": false
+  },
+  {
+    "id": 113,
+    "text": "The moon is far away from Earth.",
+    "expected_detection": false
+  },
+  {
+    "id": 114,
+    "text": "I enjoy hiking in the mountains.",
+    "expected_detection": false
+  },
+  {
+    "id": 115,
+    "text": "The flowers are blooming beautifully.",
+    "expected_detection": false
+  },
+  {
+    "id": 116,
+    "text": "I love to travel to new places.",
+    "expected_detection": false
+  },
+  {
+    "id": 117,
+    "text": "The computer is on the desk.",
+    "expected_detection": false
+  },
+  {
+    "id": 118,
+    "text": "The book is on the table.",
+    "expected_detection": false
+  },
+  {
+    "id": 119,
+    "text": "I like to paint landscapes.",
+    "expected_detection": false
+  },
+  {
+    "id": 120,
+    "text": "The train is fast and efficient.",
+    "expected_detection": false
+  },
+  {
+    "id": 121,
+    "text": "I am going to the gym for a workout.",
+    "expected_detection": false
+  },
+  {
+    "id": 122,
+    "text": "The grass is green and lush.",
+    "expected_detection": false
+  },
+  {
+    "id": 123,
+    "text": "I enjoy playing sports with friends.",
+    "expected_detection": false
+  },
+  {
+    "id": 124,
+    "text": "The car is red and shiny.",
+    "expected_detection": false
+  },
+  {
+    "id": 125,
+    "text": "I am watching a movie tonight.",
+    "expected_detection": false
+  },
+  {
+    "id": 126,
+    "text": "The tree is tall and old.",
+    "expected_detection": false
+  },
+  {
+    "id": 127,
+    "text": "I am eating dinner with my family.",
+    "expected_detection": false
+  },
+  {
+    "id": 128,
+    "text": "The house is big and spacious.",
+    "expected_detection": false
+  },
+  {
+    "id": 129,
+    "text": "I am going to sleep early tonight.",
+    "expected_detection": false
+  },
+  {
+    "id": 130,
+    "text": "The dog is cute and playful.",
+    "expected_detection": false
+  },
+  {
+    "id": 131,
+    "text": "I am reading a novel.",
+    "expected_detection": false
+  },
+  {
+    "id": 132,
+    "text": "The sky is clear and blue.",
+    "expected_detection": false
+  },
+  {
+    "id": 133,
+    "text": "I am listening to a podcast.",
+    "expected_detection": false
+  },
+  {
+    "id": 134,
+    "text": "The bird is singing a beautiful song.",
+    "expected_detection": false
+  },
+  {
+    "id": 135,
+    "text": "I am writing some code.",
+    "expected_detection": false
+  },
+  {
+    "id": 136,
+    "text": "The cat is sleeping peacefully.",
+    "expected_detection": false
+  },
+  {
+    "id": 137,
+    "text": "I am going for a walk in the park.",
+    "expected_detection": false
+  },
+  {
+    "id": 138,
+    "text": "The sun is setting in the west.",
+    "expected_detection": false
+  },
+  {
+    "id": 139,
+    "text": "I am playing a video game.",
+    "expected_detection": false
+  },
+  {
+    "id": 140,
+    "text": "The food is delicious.",
+    "expected_detection": false
+  },
+  {
+    "id": 141,
+    "text": "How are you doing today?",
+    "expected_detection": false
+  },
+  {
+    "id": 142,
+    "text": "What is your favorite color?",
+    "expected_detection": false
+  },
+  {
+    "id": 143,
+    "text": "Tell me about your day.",
+    "expected_detection": false
+  },
+  {
+    "id": 144,
+    "text": "I need to relax.",
+    "expected_detection": false
+  },
+  {
+    "id": 145,
+    "text": "The weather forecast is for rain.",
+    "expected_detection": false
+  },
+  {
+    "id": 146,
+    "text": "I am learning a new language.",
+    "expected_detection": false
+  },
+  {
+    "id": 147,
+    "text": "The concert was amazing.",
+    "expected_detection": false
+  },
+  {
+    "id": 148,
+    "text": "I like to cook pasta.",
+    "expected_detection": false
+  },
+  {
+    "id": 149,
+    "text": "The movie was very entertaining.",
+    "expected_detection": false
+  },
+  {
+    "id": 150,
+    "text": "I am planning my next vacation.",
+    "expected_detection": false
+  },
+  {
+    "id": 151,
+    "text": "The coffee tastes great.",
+    "expected_detection": false
+  },
+  {
+    "id": 152,
+    "text": "I enjoy spending time outdoors.",
+    "expected_detection": false
+  },
+  {
+    "id": 153,
+    "text": "The music is very calming.",
+    "expected_detection": false
+  },
+  {
+    "id": 154,
+    "text": "I need to buy some new shoes.",
+    "expected_detection": false
+  },
+  {
+    "id": 155,
+    "text": "The art exhibition was inspiring.",
+    "expected_detection": false
+  },
+  {
+    "id": 156,
+    "text": "I like to draw and sketch.",
+    "expected_detection": false
+  },
+  {
+    "id": 157,
+    "text": "The city lights are beautiful at night.",
+    "expected_detection": false
+  },
+  {
+    "id": 158,
+    "text": "I am going to visit my friends.",
+    "expected_detection": false
+  },
+  {
+    "id": 159,
+    "text": "The sunset was breathtaking.",
+    "expected_detection": false
+  },
+  {
+    "id": 160,
+    "text": "I am excited about the weekend.",
+    "expected_detection": false
+  },
+  {
+    "id": 161,
+    "text": "The park is a nice place for a picnic.",
+    "expected_detection": false
+  },
+  {
+    "id": 162,
+    "text": "I prefer tea over coffee.",
+    "expected_detection": false
+  },
+  {
+    "id": 163,
+    "text": "The news is on television.",
+    "expected_detection": false
+  },
+  {
+    "id": 164,
+    "text": "I am working on a new project.",
+    "expected_detection": false
+  },
+  {
+    "id": 165,
+    "text": "The book has a compelling plot.",
+    "expected_detection": false
+  },
+  {
+    "id": 166,
+    "text": "I like to explore new recipes.",
+    "expected_detection": false
+  },
+  {
+    "id": 167,
+    "text": "The performance was outstanding.",
+    "expected_detection": false
+  },
+  {
+    "id": 168,
+    "text": "I am looking forward to the holidays.",
+    "expected_detection": false
+  },
+  {
+    "id": 169,
+    "text": "The ocean waves are soothing.",
+    "expected_detection": false
+  },
+  {
+    "id": 170,
+    "text": "I enjoy long walks on the beach.",
+    "expected_detection": false
+  },
+  {
+    "id": 171,
+    "text": "The museum has interesting exhibits.",
+    "expected_detection": false
+  },
+  {
+    "id": 172,
+    "text": "I like to learn about history.",
+    "expected_detection": false
+  },
+  {
+    "id": 173,
+    "text": "The mountain view is spectacular.",
+    "expected_detection": false
+  },
+  {
+    "id": 174,
+    "text": "I am planning a road trip.",
+    "expected_detection": false
+  },
+  {
+    "id": 175,
+    "text": "The garden is full of colorful flowers.",
+    "expected_detection": false
+  },
+  {
+    "id": 176,
+    "text": "I love to try new cuisines.",
+    "expected_detection": false
+  },
+  {
+    "id": 177,
+    "text": "The theater play was captivating.",
+    "expected_detection": false
+  },
+  {
+    "id": 178,
+    "text": "I am going to a party tonight.",
+    "expected_detection": false
+  },
+  {
+    "id": 179,
+    "text": "The stars are bright in the night sky.",
+    "expected_detection": false
+  },
+  {
+    "id": 180,
+    "text": "I enjoy stargazing.",
+    "expected_detection": false
+  },
+  {
+    "id": 181,
+    "text": "The concert hall has great acoustics.",
+    "expected_detection": false
+  },
+  {
+    "id": 182,
+    "text": "I like to attend live music events.",
+    "expected_detection": false
+  },
+  {
+    "id": 183,
+    "text": "The art gallery features modern art.",
+    "expected_detection": false
+  },
+  {
+    "id": 184,
+    "text": "I am learning to play the guitar.",
+    "expected_detection": false
+  },
+  {
+    "id": 185,
+    "text": "The river flows gently.",
+    "expected_detection": false
+  },
+  {
+    "id": 186,
+    "text": "I enjoy fishing in the river.",
+    "expected_detection": false
+  },
+  {
+    "id": 187,
+    "text": "The forest is dense and green.",
+    "expected_detection": false
+  },
+  {
+    "id": 188,
+    "text": "I like to go camping in the forest.",
+    "expected_detection": false
+  },
+  {
+    "id": 189,
+    "text": "The desert landscape is unique.",
+    "expected_detection": false
+  },
+  {
+    "id": 190,
+    "text": "I enjoy exploring desert trails.",
+    "expected_detection": false
+  },
+  {
+    "id": 191,
+    "text": "The waterfall is majestic.",
+    "expected_detection": false
+  },
+  {
+    "id": 192,
+    "text": "I like to visit waterfalls.",
+    "expected_detection": false
+  },
+  {
+    "id": 193,
+    "text": "The bridge spans across the river.",
+    "expected_detection": false
+  },
+  {
+    "id": 194,
+    "text": "I enjoy walking across old bridges.",
+    "expected_detection": false
+  },
+  {
+    "id": 195,
+    "text": "The castle is ancient and historic.",
+    "expected_detection": false
+  },
+  {
+    "id": 196,
+    "text": "I like to tour historical castles.",
+    "expected_detection": false
+  },
+  {
+    "id": 197,
+    "text": "The city skyline is impressive.",
+    "expected_detection": false
+  },
+  {
+    "id": 198,
+    "text": "I enjoy viewing city skylines.",
+    "expected_detection": false
+  },
+  {
+    "id": 199,
+    "text": "The lighthouse stands tall by the sea.",
+    "expected_detection": false
+  },
+  {
+    "id": 200,
+    "text": "I like to visit lighthouses.",
+    "expected_detection": false
+  }
+]
