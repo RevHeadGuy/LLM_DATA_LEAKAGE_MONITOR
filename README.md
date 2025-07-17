@@ -49,3 +49,30 @@ i)Clear the input
 ii)Show a red toast notification: "Sensitive data detected! Input cleared."
 
 3. Works on all sites, including ChatGPT and other LLM/ML web UIs.
+
+# Testing & Evaluation
+
+1. Test Page
+
+i) Open test_page.html in your browser for a demo interface to try out detection.
+
+2. Automated Testing
+i) test_regex_detection.js and test_questions.json provide a Node.js script and dataset for evaluating detection accuracy.
+
+ii) To run the test:
+
+a) Ensure you have Node.js installed.
+
+b) Install dependencies: npm install
+
+c) Run: node test_regex_detection.js
+
+d) Review the output for detection statistics.
+
+# Model & Offline ML
+
+1. The extension uses a quantized BERT-tiny NER model (from HuggingFace, ONNX format) for entity recognition.
+
+2. All model files are stored in web_model/bert-tiny-ner/.
+
+3.No data ever leaves your machine.
