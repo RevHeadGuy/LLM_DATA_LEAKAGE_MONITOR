@@ -38,3 +38,14 @@ iv) Select the project folder (llm-data-leakage-monitor)
 
 v)The extension is now active and will monitor all web pages.
 
+# Usage
+
+1.Just use your browser as usual!
+
+2. If you type sensitive data (PII, secrets, etc.) into any text field, the extension will:
+
+i)Clear the input
+
+ii)Show a red toast notification: "Sensitive data detected! Input cleared."
+
+3. Works on all sites, including ChatGPT and other LLM/ML web UIs.
