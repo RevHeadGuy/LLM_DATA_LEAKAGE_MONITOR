@@ -128,7 +128,3 @@ The extension is designed to keep processing local:
 ## Notes
 
 This project is intended as a browser-side privacy guard for AI interfaces and other web-based tools. It is best used as a proactive defense layer, not a replacement for enterprise data-loss prevention systems.
-
-## License
-
-This project is provided as-is for educational and security-focused usage.
