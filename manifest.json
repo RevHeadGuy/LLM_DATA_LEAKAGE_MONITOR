@@ -1,10 +1,14 @@
 {
   "manifest_version": 3,
   "name": "LLM Data Leakage Monitor",
-  "version": "1.4",
+  "version": "1.5",
   "description": "Detects and blocks sensitive data using regex and offline BERT-tiny NER model with page context injection.",
-  "permissions": ["scripting", "activeTab"],
+  "permissions": ["scripting", "activeTab", "storage"],
   "host_permissions": ["<all_urls>"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "LLM Data Leakage Monitor"
+  },
   "background": {
     "service_worker": "background.js",
     "type": "module"
