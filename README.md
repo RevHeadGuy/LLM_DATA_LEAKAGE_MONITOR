@@ -1,78 +1,110 @@
-# LLM_DATA_LEAKAGE_MONITOR
+# LLM Data Leakage Monitor
 
+A Chrome browser extension that helps prevent accidental data leakage into LLM tools and AI chat interfaces by detecting sensitive content before it is submitted.
 
-A Chrome extension that detects and blocks sensitive data (PII, secrets, credentials, etc.) in real time using both advanced regex patterns and an offline BERT-tiny NER model, running entirely in your browser.
-It helps prevent accidental data leakage when using LLMs (like ChatGPT) or any web-based ML model interface.
+It combines:
+- regex-based detection for common secrets and PII
+- local ML-based entity detection using a BERT-tiny ONNX model
+- real-time blocking and alerting in text inputs and contenteditable fields
+- user configuration for allowed domains and warning/block modes
 
-# Features
+This project runs entirely in the browser and does not send user input to a remote server.
 
-1. Real-time detection: Monitors all text inputs, textareas, and contenteditable fields on every web page.
+## Features
 
-2. Regex & ML-based detection: Uses both regex patterns and a quantized BERT-tiny NER model for robust detection of PII and secrets.
+- Detects sensitive data in real time while typing
+- Monitors text inputs, textareas, and contenteditable elements
+- Blocks common secret formats such as:
+  - email addresses
+  - SSNs and phone numbers
+  - AWS and Google API keys
+  - JWTs and private keys
+  - database connection strings
+  - password/secret-like patterns
+- Uses an offline BERT-tiny model for additional PII detection
+- Allows users to configure:
+  - block vs warn-only mode
+  - allowlist for specific domains
+  - recent blocked-event log from the popup
+- Protects against paste, drag/drop, and form submission leakage
 
-3. Blocks sensitive data: Automatically clears and blocks input fields containing detected sensitive data, and notifies the user.
+## Project Structure
 
-4. Works everywhere: Functions on any website, including ChatGPT, Google Bard, and other LLM/ML web UIs.
+- `manifest.json` — Chrome extension manifest
+- `background.js` — background service worker logic
+- `content.js` — real-time detection and input blocking
+- `popup.html` — popup UI for settings and blocked-events log
+- `test_page.html` — demo page for testing detection
+- `test_regex_detection.js` — Node-based detection evaluation script
+- `test_questions.json` — sample inputs for testing
+- `web_model/bert-tiny-ner/` — local ONNX model files
+- `wasm/` — WebAssembly runtime files
+- `package.json` — npm dependency list
 
-5. Offline & private: All detection runs locally in your browser; no data is sent to any server.
+## Requirements
 
-6. Test & demo page: Includes a test page and scripts for evaluating detection accuracy.
+- Google Chrome or Chromium-based browser
+- Node.js and npm for development/testing
 
-# Installation
+## Installation
 
-1. Clone or Download the Repository
+1. Clone or download this repository.
+2. Open a terminal in the project folder.
+3. Install dependencies:
 
-2. Install Dependencies :
+```bash
+npm install
+```
 
-If you want to develop or test locally: npm install
+## Running the Extension
 
-3. Load the Extension in Chrome
-   
-i) Open Chrome and go to chrome://extensions/
+1. Open Chrome.
+2. Go to `chrome://extensions/`.
+3. Turn on Developer mode.
+4. Click Load unpacked.
+5. Select this project folder.
+6. The extension will activate automatically on webpages.
 
-ii) Enable Developer mode (top right)
+## Usage
 
-iii) Click Load unpacked
+Once enabled:
+- type into chat inputs, forms, or contenteditable fields
+- if sensitive content is detected, the extension either:
+  - clears the field in block mode, or
+  - warns in warn-only mode
+- a toast alert appears when a leak is detected
 
-iv) Select the project folder (llm-data-leakage-monitor)
+You can open the popup to:
+- switch between block / warn / off modes
+- add allowed domains
+- review recent blocked events
 
-v)The extension is now active and will monitor all web pages.
+## Testing
 
-# Usage
+A demo page is included for manual testing:
 
-1.Just use your browser as usual!
+```bash
+# open the demo page directly in Chrome
+```
 
-2. If you type sensitive data (PII, secrets, etc.) into any text field, the extension will:
+Open `test_page.html` in your browser and try entering sensitive values.
 
-i)Clear the input
+For automated validation:
 
-ii)Show a red toast notification: "Sensitive data detected! Input cleared."
+```bash
+node test_regex_detection.js
+```
 
-3. Works on all sites, including ChatGPT and other LLM/ML web UIs.
+This script loads the model and evaluates the regex-based and ML-assisted detection logic against the sample questions in `test_questions.json`.
 
-# Testing & Evaluation
+## Privacy Model
 
-1. Test Page
+The extension is designed to keep processing local:
+- no data is uploaded to an external API
+- model inference runs locally in the browser
+- detection logic is performed on the client machine
 
-i) Open test_page.html in your browser for a demo interface to try out detection.
+## Notes
 
-2. Automated Testing
-i) test_regex_detection.js and test_questions.json provide a Node.js script and dataset for evaluating detection accuracy.
+This project is intended as a browser-side privacy guard for AI interfaces and other web-based tools. It is best used as a proactive defense layer, not a replacement for enterprise data-loss prevention systems.
 
-ii) To run the test:
-
-a) Ensure you have Node.js installed.
-
-b) Install dependencies: npm install
-
-c) Run: node test_regex_detection.js
-
-d) Review the output for detection statistics.
-
-# Model & Offline ML
-
-1. The extension uses a quantized BERT-tiny NER model (from HuggingFace, ONNX format) for entity recognition.
-
-2. All model files are stored in web_model/bert-tiny-ner/.
-
-3. No data ever leaves your machine.
