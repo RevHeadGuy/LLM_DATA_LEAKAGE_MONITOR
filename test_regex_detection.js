@@ -1,16 +1,20 @@
 const fs = require('fs');
-const path = require('path'); // Node.js path module for resolving local paths
+const path = require('path');
 
-// Import the pipeline and env from the Node.js version of @xenova/transformers
-const { pipeline, env } = require('@xenova/transformers');
+let pipeline;
+let env;
+try {
+  ({ pipeline, env } = require('@xenova/transformers'));
+} catch (error) {
+  console.error('Missing dependency: run "npm install" before executing this script.');
+  process.exit(1);
+}
 
-// Configure environment for local model loading
 env.allowRemoteModels = false;
-// Use path.join to correctly resolve local file system paths
 env.localModelPath = path.join(__dirname, 'web_model/');
 env.backends.onnx.wasm.wasmPaths = path.join(__dirname, 'wasm/');
 
-let nerPipeline = null; // Declare nerPipeline globally or outside runTest
+let nerPipeline = null;
 
 // Function to load the BERT model
 async function loadModel() {
@@ -24,67 +28,98 @@ async function loadModel() {
 
 // Regex patterns to detect sensitive data
 const regexPatterns = [
-  /\b\d{3}[-.]?\d{2}[-.]?\d{4}\b/g,                                       // SSN-like
-  /\b(?:\d[ -]?){15}\d\b/g,                                            // 16-digit numbers (credit cards) with spaces/hyphens
-  /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g,                    // Emails
-  /\b(?:\+?\d{1,3}\s?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b/g,           // Flexible phone numbers (10+ digits, with symbols/spaces)
-  /AKIA[0-9A-Z]{16}/g,                                                  // AWS keys
-  /AIza[0-9A-Za-z\-_]{35}/g,                                            // Google API keys
-  /sk[-_][a-zA-Z0-9]{32,}/g,                                            // Secret keys
-  /(?<![A-Za-z0-9])[A-Za-z0-9]{32}(?![A-Za-z0-9])/g,                   // 32-char hashes/tokens
-  /(?<![A-Za-z0-9])[A-Za-z0-9]{40}(?![A-Za-z0-9])/g,                   // 40-char hashes/tokens
-  /(?<![A-Za-z0-9])[A-Za-z0-9]{64}(?![A-Za-z0-9])/g,                   // 64-char hashes/tokens
-  /api[_-]?key\s*[:=]?\s*['"]?[A-Za-z0-9\-_]{16,}['"]?/gi,              // API keys, flexible with separators and quotes
-  /secret[_-]?key\s*[:=]?\s*['"]?[A-Za-z0-9\-_]{16,}['"]?/gi,           // Secret keys, flexible with separators and quotes
-  /access[_-]?token\s*[:=]?\s*['"]?[A-Za-z0-9\-_]{16,}['"]?/gi,         // Access tokens, flexible with separators and quotes
-  /(?<![A-Za-z0-9])(?:[A-Za-z0-9\-_]{16,256})(?![A-Za-z0-9])/g,          // A general pattern for long alphanumeric strings (16-256 chars)
-  // New regex patterns for specific PII types that were missed
-  /(?:office|personal|system|database|server)\s+password\s+is\s+['"]?[A-Za-z0-9!@#$%^&*()_+=\-]{3,}['"]?/gi, // Generic password phrases
-  /(?:medical record number|MRN)[-.\s]?[A-Za-z0-9]{3,}/gi,              // Medical Record Numbers
-  /(?:employee id|EMP)[-.\s]?[A-Za-z0-9]{3,}/gi,                        // Employee IDs
-  /(?:driver's license number|D)[-.\s]?[A-Za-z0-9]{7,}/gi,              // Driver's License Numbers
-  /(?:passport number|P)[-.\s]?[A-Za-z0-9]{7,}/gi                       // Passport Numbers
+  /\b\d{3}[-.]?\d{2}[-.]?\d{4}\b/g,
+  /\b(?:\d[ -]?){15}\d\b/g,
+  /(?:3[47]\d{13}|(?:4|5|6)\d{15}|3(?:0[0-5]|[68]\d)\d{11}|(?:2131|1800)\d{11})\b/g,
+  /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g,
+  /\b(?:\+?\d{1,3}\s?)?(?:\(?\d{3}\)?[-.\s]?){2}\d{4}\b/g,
+  /AKIA[0-9A-Z]{16}/g,
+  /ASIA[0-9A-Z]{12,}/g,
+  /AIza[0-9A-Za-z\-_]{35}/g,
+  /sk[-_][a-zA-Z0-9]{32,}/g,
+  /(?:eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+)/g,
+  /-----BEGIN (?:RSA |EC |DSA |OPENSSH )?PRIVATE KEY-----[\s\S]*?-----END (?:RSA |EC |DSA |OPENSSH )?PRIVATE KEY-----/g,
+  /(?:mongodb(?:\+srv)?:\/\/|postgres(?:ql)?:\/\/|mysql:\/\/|redis:\/\/|amqp:\/\/|ssh:\/\/)[^\s<>]+/gi,
+  /(?:client[_-]?secret|oauth[_-]?token|refresh[_-]?token|bearer)[\s:=]+['"]?[A-Za-z0-9._~+\/-]+=*['"]?/gi,
+  /(?<![A-Za-z0-9])[A-Za-z0-9]{32}(?![A-Za-z0-9])/g,
+  /(?<![A-Za-z0-9])[A-Za-z0-9]{40}(?![A-Za-z0-9])/g,
+  /(?<![A-Za-z0-9])[A-Za-z0-9]{64}(?![A-Za-z0-9])/g,
+  /api[_-]?key\s*(?:[:=]|is)\s*['"]?[A-Za-z0-9\-_]{16,}['"]?/gi,
+  /secret[_-]?key\s*(?:[:=]|is)\s*['"]?[A-Za-z0-9\-_]{16,}['"]?/gi,
+  /access[_-]?token\s*(?:[:=]|is)\s*['"]?[A-Za-z0-9\-_]{16,}['"]?/gi,
+  /(?:office|personal|system|database|server)\s+password\s+(?:is|:|=)\s*['"]?[A-Za-z0-9!@#$%^&*()_+=\-]{3,}['"]?/gi,
+  /\b(?:my|i)\s+(?:full\s+name|name|address|date\s+of\s+birth|birthdate|mother['’]s\s+maiden\s+name|current\s+location|medical\s+condition|medical\s+record\s+number|employee\s+id|passport\s+number|driver['’]s\s+license\s+number|secret\s+phrase|secret[_\s-]?key|api[_\s-]?key|access[_\s-]?token|ssn|social\s+security|credit\s+card|aws\s+key|google\s+api\s+key|password)\s+(?:is|:|=)/gi,
+  /(?:medical record number|MRN)[-.\s]?[A-Za-z0-9]{3,}/gi,
+  /(?:employee id|EMP)[-.\s]?[A-Za-z0-9]{3,}/gi,
+  /(?:driver['’]s\s+license\s+number\s*(?:is|:|=)\s*D?[A-Za-z0-9]{7,}|(?<![A-Za-z])D[A-Za-z0-9]{7,}(?![A-Za-z]))/gi,
+  /(?:passport\s+number\s*(?:is|:|=)\s*P?[A-Za-z0-9]{7,}|(?<![A-Za-z])P[A-Za-z0-9]{7,}(?![A-Za-z]))/gi
 ];
 
 function containsSensitiveRegex(text) {
-  return regexPatterns.some(p => p.test(text));
+  return regexPatterns.some((p) => {
+    const result = p.test(text);
+    p.lastIndex = 0;
+    return result;
+  });
+}
+
+function hasStrongPiiContext(text) {
+  const lowerText = text.toLowerCase();
+  const keywordChecks = [
+    'my name is', 'my full name is', 'my address is', 'my email is',
+    'my phone', 'my birthdate is', 'my date of birth is',
+    'my mother\'s maiden name is', 'my current location is',
+    'my medical condition is', 'my medical record number is',
+    'my employee id is', 'my passport number is', 'my driver\'s license number is',
+    'my office password is', 'my personal password is', 'my system password is',
+    'my database password is', 'my server password is', 'my password is',
+    'my secret phrase is', 'my secret_key is', 'my secret key is',
+    'my api key is', 'my access token is', 'api key', 'secret key',
+    'access token', 'ssn', 'social security', 'credit card', 'aws key',
+    'google api key', 'token:', 'hash:'
+  ];
+
+  return keywordChecks.some((keyword) => lowerText.includes(keyword));
 }
 
 // Function to perform BERT-based PII check
 async function checkPIIWithBert(text) {
-  const model = await loadModel(); // Ensure model is loaded
+  const model = await loadModel();
+
+  if (!hasStrongPiiContext(text)) {
+    return false;
+  }
+
   try {
     const result = await model(text, { aggregation_strategy: 'simple' });
-    const piiTags = ['PER', 'ORG', 'LOC', 'MISC', 'DATE', 'NOC']; // Common PII entity groups
-    let hasPII = result.some(ent => piiTags.includes(ent.entity_group));
+    const piiTags = ['PER', 'ORG', 'LOC', 'MISC'];
+    let hasPII = result.some((ent) => piiTags.includes(ent.entity_group) && (ent.score || 0) > 0.8);
 
-    // Additional keyword-based checks for general PII that BERT might miss
     const lowerText = text.toLowerCase();
     const additionalPiiKeywords = [
-      'my full name is', 'i live at', 'my date of birth is', 'my mother\'s maiden name is',
-      'my current location is', 'my medical condition is'
+      'my full name is', 'my name is', 'i live at', 'my date of birth is', 'my mother\'s maiden name is',
+      'my current location is', 'my medical condition is', 'my address is', 'my email is',
+      'my office password is', 'my personal password is', 'my system password is', 'my database password is',
+      'my server password is', 'my secret phrase is', 'my secret key is', 'my api key is', 'my access token is'
     ];
-    const containsAdditionalPii = additionalPiiKeywords.some(keyword => lowerText.includes(keyword));
+    const containsAdditionalPii = additionalPiiKeywords.some((keyword) => lowerText.includes(keyword));
 
     if (containsAdditionalPii) {
-      hasPII = true; // Override if additional PII keywords are found
+      hasPII = true;
       console.log(`Additional keyword check detected PII for text: "${text}"`);
     }
 
-
     if (hasPII) {
       console.log(`BERT model detected PII for text: "${text}"`);
-      // Optionally, you can log the detected entities for debugging
-      // console.log("Detected entities:", result.filter(ent => piiTags.includes(ent.entity_group)));
     }
     return hasPII;
   } catch (e) {
     console.error('BERT inference error:', e);
-    return false; // Return false on error
+    return false;
   }
 }
 
-const jsonFilePath = 'test_questions.json'; // Ensure this points to your JSON file
+const jsonFilePath = path.join(__dirname, 'test_questions.json');
 
 async function runTest() {
   let testData;
