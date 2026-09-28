@@ -17,8 +17,8 @@ const regexPatterns = [
   /sk[-_][a-zA-Z0-9]{32,}/g,
   /(?:eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+)/g,
   /-----BEGIN (?:RSA |EC |DSA |OPENSSH )?PRIVATE KEY-----[\s\S]*?-----END (?:RSA |EC |DSA |OPENSSH )?PRIVATE KEY-----/g,
-  /(?:mongodb(?:\+srv)?://|postgres(?:ql)?://|mysql://|redis://|amqp://|ssh://)[^\s'"<>]+/gi,
-  /(?:client[_-]?secret|oauth[_-]?token|refresh[_-]?token|jwt|bearer)[\s:=]+['"]?[A-Za-z0-9._~+\/-]+=*['"]?/gi,
+  /(?:mongodb(?:\+srv)?:\/\/|postgres(?:ql)?:\/\/|mysql:\/\/|redis:\/\/|amqp:\/\/|ssh:\/\/)[^\s<>]+/gi,
+  /(?:client[_-]?secret|oauth[_-]?token|refresh[_-]?token|bearer)[\s:=]+['"]?[A-Za-z0-9._~+\/-]+=*['"]?/gi,
   /(?<![A-Za-z0-9])[A-Za-z0-9]{32}(?![A-Za-z0-9])/g,
   /(?<![A-Za-z0-9])[A-Za-z0-9]{40}(?![A-Za-z0-9])/g,
   /(?<![A-Za-z0-9])[A-Za-z0-9]{64}(?![A-Za-z0-9])/g,
@@ -161,16 +161,29 @@ function injectModuleScript() {
 
 injectModuleScript();
 
-function checkPIIWithPage(text) {
+function checkPIIWithPage(text, timeoutMs = 1500) {
   return new Promise((resolve) => {
     const id = 'llm-pii-check-' + Math.random().toString(36).slice(2);
+    let settled = false;
+
+    const cleanup = () => {
+      if (settled) return;
+      settled = true;
+      window.removeEventListener('llm-pii-result', handler);
+      clearTimeout(timer);
+    };
 
     function handler(e) {
-      if (e.detail.id === id) {
-        window.removeEventListener('llm-pii-result', handler);
-        resolve(e.detail.hasPII);
+      if (e.detail && e.detail.id === id) {
+        cleanup();
+        resolve(Boolean(e.detail.hasPII));
       }
     }
+
+    const timer = setTimeout(() => {
+      cleanup();
+      resolve(false);
+    }, timeoutMs);
 
     window.addEventListener('llm-pii-result', handler);
     window.dispatchEvent(new CustomEvent('llm-pii-check', { detail: { id, text } }));
@@ -286,12 +299,25 @@ async function onFormSubmit(e) {
   }
 }
 
-function attachListenerToInput(element) {
-  if (element.nodeType !== Node.ELEMENT_NODE) return;
+function getInputTargets(root) {
+  if (!root) return [];
 
-  const targets = element.matches('input[type="text"], input[type="email"], textarea, [contenteditable="true"]')
-    ? [element]
-    : element.querySelectorAll('input[type="text"], input[type="email"], textarea, [contenteditable="true"]');
+  const selectors = 'input[type="text"], input[type="email"], input[type="search"], textarea, [contenteditable="true"], [contenteditable="plaintext-only"]';
+
+  if (root instanceof ShadowRoot) {
+    return Array.from(root.querySelectorAll(selectors));
+  }
+
+  if (root.nodeType === Node.ELEMENT_NODE) {
+    const ownMatch = root.matches(selectors) ? [root] : [];
+    return ownMatch.concat(Array.from(root.querySelectorAll(selectors)));
+  }
+
+  return [];
+}
+
+function attachListenerToInput(element) {
+  const targets = getInputTargets(element);
 
   targets.forEach((node) => {
     if (!node.dataset.llmMonitorAttached) {
