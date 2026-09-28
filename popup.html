@@ -1,15 +1,195 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <meta charset="UTF-8" />
     <title>LLM Data Leakage Monitor</title>
     <style>
-      body { font-family: Arial, sans-serif; padding: 10px; }
-      h1 { font-size: 18px; }
+      body {
+        width: 340px;
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 14px;
+        box-sizing: border-box;
+        background: linear-gradient(180deg, #f9fafb 0%, #eef4ff 100%);
+        color: #1f2937;
+      }
+      h1 {
+        font-size: 18px;
+        margin: 0 0 12px;
+      }
+      .panel {
+        background: #fff;
+        border: 1px solid #dfe7f5;
+        border-radius: 10px;
+        padding: 10px 10px 8px;
+        margin-bottom: 12px;
+        box-shadow: 0 1px 3px rgba(16, 24, 40, 0.04);
+      }
+      label {
+        display: block;
+        font-size: 12px;
+        font-weight: 600;
+        margin-bottom: 6px;
+      }
+      select,
+      textarea,
+      button {
+        width: 100%;
+        box-sizing: border-box;
+      }
+      select,
+      textarea {
+        border: 1px solid #cbd5e1;
+        border-radius: 7px;
+        padding: 8px 10px;
+        font-size: 12px;
+        background: white;
+      }
+      textarea {
+        min-height: 72px;
+        resize: vertical;
+      }
+      button {
+        border: none;
+        border-radius: 7px;
+        padding: 9px 12px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .primary {
+        background: #2563eb;
+        color: white;
+      }
+      .secondary {
+        background: #e5e7eb;
+        color: #111827;
+      }
+      .status {
+        font-size: 12px;
+        min-height: 18px;
+        color: #166534;
+        margin-top: 8px;
+      }
+      .small {
+        font-size: 11px;
+        color: #6b7280;
+        margin: 4px 0 8px;
+      }
+      .events {
+        list-style: none;
+        padding: 0;
+        margin: 8px 0 0;
+        max-height: 170px;
+        overflow-y: auto;
+      }
+      .event {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        padding: 7px 8px;
+        margin-bottom: 6px;
+        font-size: 11px;
+        line-height: 1.4;
+      }
+      .event strong {
+        font-size: 10px;
+        display: inline-block;
+        margin-bottom: 2px;
+      }
+      .empty {
+        font-size: 11px;
+        color: #6b7280;
+        margin-top: 8px;
+      }
     </style>
   </head>
   <body>
     <h1>LLM Data Leakage Monitor</h1>
-    <p>This extension blocks sensitive data using regex and MobileBERT.</p>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.13.0/dist/tf.min.js"></script>
+
+    <div class="panel">
+      <label for="mode">Detection mode</label>
+      <select id="mode">
+        <option value="block">Block input</option>
+        <option value="warn">Warn only</option>
+        <option value="off">Off</option>
+      </select>
+
+      <label for="allowlist" style="margin-top: 10px;">Allowed domains</label>
+      <textarea id="allowlist" placeholder="example.com&#10;localhost"></textarea>
+      <div class="small">One domain per line or comma-separated.</div>
+
+      <button id="saveBtn" class="primary">Save settings</button>
+      <div id="status" class="status"></div>
+    </div>
+
+    <div class="panel">
+      <label>Recent blocked events</label>
+      <button id="clearEventsBtn" class="secondary">Clear log</button>
+      <ul id="eventsList" class="events"></ul>
+      <div id="emptyState" class="empty">No blocked events yet.</div>
+    </div>
+
+    <script>
+      const DEFAULT_SETTINGS = { mode: 'block', allowlist: [] };
+
+      function loadSettings() {
+        chrome.storage.local.get(['llmLeakageSettings'], (result) => {
+          const settings = result.llmLeakageSettings || DEFAULT_SETTINGS;
+          document.getElementById('mode').value = settings.mode || 'block';
+          const allowlist = Array.isArray(settings.allowlist) ? settings.allowlist : [];
+          document.getElementById('allowlist').value = allowlist.join('\n');
+        });
+      }
+
+      function saveSettings() {
+        const mode = document.getElementById('mode').value;
+        const rawText = document.getElementById('allowlist').value || '';
+        const allowlist = rawText
+          .split(/[\n,]+/)
+          .map(item => item.trim().toLowerCase())
+          .filter(Boolean);
+
+        const settings = { mode, allowlist };
+        chrome.storage.local.set({ llmLeakageSettings: settings }, () => {
+          const status = document.getElementById('status');
+          status.textContent = 'Settings saved.';
+        });
+      }
+
+      function renderEvents() {
+        chrome.storage.local.get(['llmBlockedEvents'], (result) => {
+          const events = Array.isArray(result.llmBlockedEvents) ? result.llmBlockedEvents : [];
+          const list = document.getElementById('eventsList');
+          const emptyState = document.getElementById('emptyState');
+
+          list.innerHTML = '';
+
+          if (!events.length) {
+            emptyState.style.display = 'block';
+            return;
+          }
+
+          emptyState.style.display = 'none';
+          events.slice(0, 10).forEach((event) => {
+            const item = document.createElement('li');
+            item.className = 'event';
+            item.innerHTML = `
+              <strong>${event.action || 'Blocked'} • ${event.source || 'input'}</strong><br>
+              ${event.domain || 'unknown'}<br>
+              ${new Date(event.time || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            `;
+            list.appendChild(item);
+          });
+        });
+      }
+
+      document.getElementById('saveBtn').addEventListener('click', saveSettings);
+      document.getElementById('clearEventsBtn').addEventListener('click', () => {
+        chrome.storage.local.set({ llmBlockedEvents: [] }, () => renderEvents());
+      });
+
+      loadSettings();
+      renderEvents();
+    </script>
   </body>
-</html> 
+</html>
