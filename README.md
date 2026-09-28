@@ -45,16 +45,31 @@ This project runs entirely in the browser and does not send user input to a remo
 
 - Google Chrome or Chromium-based browser
 - Node.js and npm for development/testing
+- Python 3 and pip for downloading the local TinyBERT model files
 
 ## Installation
 
 1. Clone or download this repository.
 2. Open a terminal in the project folder.
-3. Install dependencies:
+3. Install JavaScript dependencies:
 
 ```bash
 npm install
 ```
+
+4. Install the Python helper used by the model downloader:
+
+```bash
+python -m pip install huggingface_hub
+```
+
+5. Download the local ONNX model used by the extension:
+
+```bash
+python download_model.py
+```
+
+> If the model is missing or the runtime complains about `model_quantized.onnx`, re-run the command above. The repo includes a compatibility step that normalizes the downloaded file name when needed.
 
 ## Running the Extension
 
@@ -95,7 +110,13 @@ For automated validation:
 node test_regex_detection.js
 ```
 
-This script loads the model and evaluates the regex-based and ML-assisted detection logic against the sample questions in `test_questions.json`.
+This script loads the local TinyBERT model and evaluates the regex-based and ML-assisted detection logic against the sample questions in `test_questions.json`.
+
+If you see a model-not-found error, make sure the local model is present under `web_model/bert-tiny-ner/onnx/` and re-run:
+
+```bash
+python download_model.py
+```
 
 ## Privacy Model
 
@@ -108,3 +129,6 @@ The extension is designed to keep processing local:
 
 This project is intended as a browser-side privacy guard for AI interfaces and other web-based tools. It is best used as a proactive defense layer, not a replacement for enterprise data-loss prevention systems.
 
+## License
+
+This project is provided as-is for educational and security-focused usage.
