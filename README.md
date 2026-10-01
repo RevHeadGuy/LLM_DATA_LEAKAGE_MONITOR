@@ -6,6 +6,54 @@ Detection runs in two layers — fast regex patterns followed by a local offline
 
 ---
 
+## Project Type
+
+**Applied ML project** (not Gen AI).
+
+This project uses a pre-trained, fine-tuned **TinyBERT** model for **Named Entity Recognition (NER)** — a supervised NLP classification task. It does not generate any content. It classifies whether a piece of text contains PII or sensitive data, then acts on that classification inside the browser.
+
+The irony: this is an ML-powered security layer built to protect against data leakage *into* Gen AI tools like ChatGPT, Claude, and Gemini.
+
+---
+
+## Model
+
+| Property | Value |
+|---|---|
+| HuggingFace repo | [`onnx-community/TinyBERT-finetuned-NER-ONNX`](https://huggingface.co/onnx-community/TinyBERT-finetuned-NER-ONNX) |
+| Original base | `adel-cybral/TinyBERT-finetuned-NER` |
+| Architecture | `BertForTokenClassification` (4-layer TinyBERT) |
+| Task | Named Entity Recognition (token classification) |
+| Labels | `LABEL_0` (no entity) through `LABEL_8` (9 classes) |
+| Format | ONNX, quantized — runs via ONNX Runtime WebAssembly |
+| Size | ~36 MB (quantized) |
+| Fine-tuning | Done by model author on a NER dataset — **not fine-tuned in this project** |
+| Inference | 100% offline, inside the browser, no API calls |
+
+> **Note on fine-tuning:** The model is used as-is from HuggingFace. No custom fine-tuning is performed here. For better PII-specific accuracy, the model could be fine-tuned on a dataset containing labeled API keys, passwords, SSNs, etc. using HuggingFace `transformers` + `optimum` for ONNX export.
+
+---
+
+## APIs Used
+
+**No external APIs.** Everything runs locally.
+
+| API | Type | Used for |
+|---|---|---|
+| `chrome.storage.local` | Browser API | Saving settings and event history |
+| `chrome.runtime` | Browser API | Message passing between scripts |
+| `chrome.tabs` | Browser API | Opening the dashboard |
+| `CustomEvent` / `dispatchEvent` | Browser API | Script-to-script communication |
+| `MutationObserver` | Browser API | Watching for new input fields |
+| `Canvas API` | Browser API | Timeline and sparkline charts |
+| `@xenova/transformers` | Local JS library | Running BERT inference in browser |
+| `ONNX Runtime WebAssembly` | Local `.wasm` files | Executing the ONNX model |
+| HuggingFace Hub | External (setup only) | One-time model download via `download_model.py` |
+
+After the one-time model download, the extension makes **zero network requests** during normal operation.
+
+---
+
 ## Features
 
 ### Detection
@@ -18,13 +66,13 @@ Detection runs in two layers — fast regex patterns followed by a local offline
   - Database connection strings (MongoDB, PostgreSQL, MySQL, Redis…)
   - OAuth / bearer tokens, secret keys, access tokens
   - Medical record numbers, employee IDs, driver's licenses, passports
-  - "My name is…" / "My password is…" phrase patterns
+  - `"My name is…"` / `"My password is…"` phrase patterns
 - **Layer 2 — BERT NER** — offline TinyBERT ONNX model detects named entities (persons, locations, organisations) that regex would miss
 - On detection: **Block** mode clears and resets the field; **Warn** mode highlights it amber
 
 ### Dashboard (full-page UI)
 Open via the popup or directly at the extension's `dashboard.html`:
-- **Impressive animated header** with a shimmer sweep, gradient title, and "Protection Active" pill
+- **Animated header** with shimmer sweep, gradient title, and "Protection Active" pill
 - **6 live stat cards** — each with a 7-day sparkline trend chart and animated number counter:
   - Total Blocked, Total Warned, Today (last 24 h), Sites Protected, BERT Detections, Top Category
 - **Activity timeline** — smooth Bézier area chart for the last 24 hours (hourly buckets)
@@ -56,12 +104,13 @@ Compact quick-access panel:
 ## Project Structure
 
 ```
-manifest.json               Chrome MV3 extension manifest
+manifest.json               Chrome MV3 extension manifest (v1.6)
 background.js               Service worker — lifecycle + model status relay
 content.js                  Content script — detection, blocking, event logging
 popup.html / popup.js       Compact popup UI
-dashboard.html              Full-page dashboard (HTML structure + CSS)
+dashboard.html              Full-page dashboard (HTML + CSS)
 dashboard.js                Dashboard logic — charts, table, settings, animations
+dashboard_preview.html      Standalone preview of the dashboard with mock data
 test_page.html              Demo page for manual testing
 test_regex_detection.js     Node.js automated test runner (regex + BERT)
 test_questions.json         200 labelled test cases
@@ -102,7 +151,7 @@ python -m pip install huggingface_hub
 python download_model.py
 ```
 
-This downloads the quantized TinyBERT NER model from HuggingFace and places it under `web_model/bert-tiny-ner/onnx/model_quantized.onnx`. The script also automatically renames the file if an older dot-separator version (`model.quantized.onnx`) is present.
+This downloads `onnx-community/TinyBERT-finetuned-NER-ONNX` from HuggingFace and places it under `web_model/bert-tiny-ner/onnx/model_quantized.onnx`. The script also automatically renames the file if an older dot-separator version (`model.quantized.onnx`) is present.
 
 **5. Load the extension in Chrome**
 1. Open `chrome://extensions/`
@@ -136,6 +185,12 @@ Switch modes from the popup, the sidebar quick toggle, or the Settings page.
 ### Domain allowlist
 
 Add trusted domains (e.g. `localhost`, `internal.corp`) in Settings → Domain Allowlist. The extension stays silent on those domains.
+
+---
+
+## Preview
+
+Open `dashboard_preview.html` directly in Chrome to see a fully interactive dashboard UI with mock data — no extension installation needed.
 
 ---
 
@@ -176,7 +231,7 @@ User types / pastes text
         │
         ▼
   page-injected-module.js  ──►  TinyBERT ONNX inference (offline, in page context)
-        │
+        │                        (onnx-community/TinyBERT-finetuned-NER-ONNX)
   CustomEvent 'llm-pii-result'
         │
         ▼
@@ -192,26 +247,26 @@ Chrome MV3 service workers cannot spawn `blob:` Web Workers, which ONNX Runtime 
 
 ---
 
-## Bug fixes applied (v1.6)
+## Bug fixes (v1.6)
 
 | Issue | Fix |
 |---|---|
-| `background.js` imported from CDN URL — forbidden in MV3 | Replaced with local `./libs/transformers.min.js` |
+| `background.js` imported from CDN — forbidden in MV3 | Replaced with local `./libs/transformers.min.js` |
 | Service worker crashed on load | Removed all model loading from service worker |
-| Wrong entity group tags (`PER`, `ORG`…) | Model uses `LABEL_0`–`LABEL_8`; detection logic updated |
+| Wrong entity tags (`PER`, `ORG`…) | Model uses `LABEL_0`–`LABEL_8`; detection logic updated |
 | Over-broad driver's license / passport regex | Patterns now require full label prefix |
 | API key patterns didn't match `"is"` keyword | Updated to accept `:`, `=`, or `is` |
 | Async `e.preventDefault()` too late for paste/drop | Regex hits cancel synchronously; BERT hits clear field after inference |
 | `env.cache = false` was a no-op | Replaced with `env.useBrowserCache = false` |
 | `libs/set-globals.js` was dead code | Deleted |
 | Popup inline `<script>` violated MV3 CSP | Extracted to `popup.js` |
-| ONNX model filename mismatch (`model.quantized.onnx` vs `model_quantized.onnx`) | Renamed on disk; `download_model.py` handles it automatically |
+| ONNX model filename mismatch | Renamed on disk; `download_model.py` handles it automatically |
 
 ---
 
 ## Privacy
 
-- No data is uploaded to any external API
-- All inference runs locally via ONNX Runtime WebAssembly
-- Event history is stored only in `chrome.storage.local` on your machine
-- The extension makes zero outbound network requests during normal operation
+- No external API calls during normal operation
+- No data uploaded anywhere — all inference runs locally via ONNX Runtime WebAssembly
+- Event history stored only in `chrome.storage.local` on your machine
+- The only external touch is the one-time model download from HuggingFace during setup
