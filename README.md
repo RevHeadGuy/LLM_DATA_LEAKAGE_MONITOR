@@ -247,7 +247,7 @@ Chrome MV3 service workers cannot spawn `blob:` Web Workers, which ONNX Runtime 
 
 ---
 
-## Bug fixes (v1.6)
+## Bug fixes 
 
 | Issue | Fix |
 |---|---|
