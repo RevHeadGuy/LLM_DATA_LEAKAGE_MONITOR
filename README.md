@@ -8,7 +8,7 @@ Detection runs in two layers — fast regex patterns followed by a local offline
 
 ## Project Type
 
-**Applied ML project** (not Gen AI).
+**Applied ML project** 
 
 This project uses a pre-trained, fine-tuned **TinyBERT** model for **Named Entity Recognition (NER)** — a supervised NLP classification task. It does not generate any content. It classifies whether a piece of text contains PII or sensitive data, then acts on that classification inside the browser.
 
