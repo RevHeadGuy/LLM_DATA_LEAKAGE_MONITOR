@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>LLM Data Leakage Monitor</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #0f1117;
+      --surface: #1a1d27;
+      --surface2:#22263a;
+      --border:  #2e3450;
+      --accent:  #4f6ef7;
+      --danger:  #ef4444;
+      --warn:    #f59e0b;
+      --success: #22c55e;
+      --text:    #e2e8f0;
+      --muted:   #8892b0;
+    }
+
+    body {
+      width: 320px;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    /* ── Header ────────────────────────────────────────── */
+    header {
+      display: flex; align-items: center; gap: 10px;
+      padding: 14px 16px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .logo {
+      width: 28px; height: 28px;
+      background: linear-gradient(135deg, var(--accent), #7c3aed);
+      border-radius: 7px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; flex-shrink: 0;
+    }
+    .title-block h1 { font-size: 13px; font-weight: 700; }
+    .title-block p  { font-size: 10px; color: var(--muted); margin-top: 1px; }
+
+    /* ── Model status ───────────────────────────────────── */
+    .model-row {
+      display: flex; align-items: center; gap: 8px;
+      padding: 9px 16px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      font-size: 11px;
+    }
+    .model-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--muted); flex-shrink: 0;
+    }
+    .model-dot.ready   { background: var(--success); box-shadow: 0 0 5px var(--success); }
+    .model-dot.loading { background: var(--warn); animation: pulse 1.2s infinite; }
+    .model-dot.error   { background: var(--danger); }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+    .model-label { color: var(--muted); }
+    .model-status { font-weight: 600; }
+
+    /* ── Quick stats ────────────────────────────────────── */
+    .stats-row {
+      display: grid; grid-template-columns: 1fr 1fr 1fr;
+      border-bottom: 1px solid var(--border);
+    }
+    .stat {
+      padding: 12px 10px; text-align: center;
+      border-right: 1px solid var(--border);
+    }
+    .stat:last-child { border-right: none; }
+    .stat .sv { font-size: 22px; font-weight: 800; line-height: 1; }
+    .stat .sl { font-size: 10px; color: var(--muted); margin-top: 3px; }
+    .stat.danger .sv { color: var(--danger); }
+    .stat.warn   .sv { color: var(--warn); }
+    .stat.accent .sv { color: var(--accent); }
+
+    /* ── Mode toggle ────────────────────────────────────── */
+    .section { padding: 12px 16px; border-bottom: 1px solid var(--border); }
+    .section-label {
+      font-size: 10px; font-weight: 700; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px;
+    }
+
+    .mode-buttons { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+    .mode-btn {
+      padding: 7px 4px; border-radius: 7px; font-size: 11px; font-weight: 600;
+      border: 1px solid var(--border); background: var(--surface2);
+      color: var(--muted); cursor: pointer; text-align: center;
+      transition: all 0.15s;
+    }
+    .mode-btn:hover { border-color: var(--accent); color: var(--text); }
+    .mode-btn.active-block { background: rgba(239,68,68,0.15); border-color: var(--danger); color: var(--danger); }
+    .mode-btn.active-warn  { background: rgba(245,158,11,0.15); border-color: var(--warn);   color: var(--warn); }
+    .mode-btn.active-off   { background: rgba(136,146,176,0.1); border-color: var(--muted);  color: var(--muted); }
+
+    /* ── Recent events mini-list ────────────────────────── */
+    .events-list { display: flex; flex-direction: column; gap: 5px; }
+    .event-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 7px 10px;
+      background: var(--surface2); border-radius: 7px;
+      font-size: 11px;
+    }
+    .event-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+    .event-dot.blocked { background: var(--danger); }
+    .event-dot.warning { background: var(--warn); }
+    .event-domain { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .event-cat    { color: var(--muted); flex-shrink: 0; }
+    .event-time   { color: var(--muted); flex-shrink: 0; font-size: 10px; }
+    .no-events    { font-size: 11px; color: var(--muted); text-align: center; padding: 8px 0; }
+
+    /* ── Dashboard button ───────────────────────────────── */
+    .footer {
+      padding: 10px 16px;
+    }
+    .dashboard-btn {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      width: 100%; padding: 9px;
+      background: linear-gradient(135deg, var(--accent), #7c3aed);
+      border: none; border-radius: 8px;
+      color: #fff; font-size: 12px; font-weight: 700;
+      cursor: pointer; transition: opacity 0.15s;
+    }
+    .dashboard-btn:hover { opacity: 0.88; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">🛡️</div>
+  <div class="title-block">
+    <h1>LLM Data Leakage Monitor</h1>
+    <p>Local privacy guard — all processing on-device</p>
+  </div>
+</header>
+
+<!-- Model status -->
+<div class="model-row">
+  <div class="model-dot loading" id="modelDot"></div>
+  <span class="model-label">BERT model:</span>
+  <span class="model-status" id="modelStatus">Loading…</span>
+</div>
+
+<!-- Quick stats -->
+<div class="stats-row">
+  <div class="stat danger"><div class="sv" id="sBlocked">—</div><div class="sl">Blocked</div></div>
+  <div class="stat warn">  <div class="sv" id="sWarned">—</div> <div class="sl">Warned</div></div>
+  <div class="stat accent"><div class="sv" id="sToday">—</div>  <div class="sl">Today</div></div>
+</div>
+
+<!-- Mode selector -->
+<div class="section">
+  <div class="section-label">Detection Mode</div>
+  <div class="mode-buttons">
+    <button class="mode-btn" data-mode="block" id="modeBlock">🚫 Block</button>
+    <button class="mode-btn" data-mode="warn"  id="modeWarn">⚠ Warn</button>
+    <button class="mode-btn" data-mode="off"   id="modeOff">○ Off</button>
+  </div>
+</div>
+
+<!-- Recent events -->
+<div class="section">
+  <div class="section-label">Recent Detections</div>
+  <div class="events-list" id="recentEvents">
+    <div class="no-events">No detections yet</div>
+  </div>
+</div>
+
+<!-- Open dashboard -->
+<div class="footer">
+  <button class="dashboard-btn" id="openDashboard">
+    📊 Open Full Dashboard
+  </button>
+</div>
+
+<script src="popup.js"></script>
+</body>
+</html>
