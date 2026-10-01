@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LLM Data Leakage Monitor — Dashboard Preview</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #060810;
+      --bg2:      #0a0d1a;
+      --surface:  #0f1423;
+      --surface2: #151c30;
+      --surface3: #1b2440;
+      --border:   rgba(148,163,184,0.08);
+      --border2:  rgba(148,163,184,0.05);
+      --accent:   #6366f1;
+      --accent2:  #8b5cf6;
+      --danger:   #f43f5e;
+      --warn:     #f59e0b;
+      --success:  #10b981;
+      --text:     #f8fafc;
+      --text2:    #94a3b8;
+      --muted:    #475569;
+      --r:        16px;
+      --r-sm:     10px;
+    }
+
+    html, body { height: 100%; overflow: hidden; }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      background-image:
+        radial-gradient(ellipse 110% 60% at 10% -5%,  rgba(99,102,241,0.14) 0%, transparent 55%),
+        radial-gradient(ellipse 70%  50% at 90%  110%, rgba(139,92,246,0.09) 0%, transparent 55%);
+    }
+
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 99px; }
+
+    /* ── HEADER ──────────────────────────────────────────── */
+    header {
+      flex-shrink: 0;
+      display: flex; align-items: center; gap: 16px;
+      padding: 0 32px; height: 64px;
+      background: rgba(9,11,22,0.92);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(99,102,241,0.2);
+      position: relative; overflow: hidden;
+    }
+    header::after {
+      content: '';
+      position: absolute; bottom: 0; left: -100%;
+      width: 60%; height: 1px;
+      background: linear-gradient(90deg, transparent 0%, rgba(99,102,241,0.8) 40%, rgba(139,92,246,0.8) 60%, transparent 100%);
+      animation: shimmer 3s ease-in-out infinite;
+    }
+    @keyframes shimmer { 0%{left:-60%} 100%{left:140%} }
+
+    .h-logo {
+      width: 38px; height: 38px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 11px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 19px; flex-shrink: 0;
+      box-shadow: 0 0 0 1px rgba(99,102,241,0.35), 0 0 22px rgba(99,102,241,0.3);
+    }
+    .h-titles h1 {
+      font-size: 17px; font-weight: 800; letter-spacing: -0.4px; line-height: 1.1;
+      background: linear-gradient(90deg, #ffffff 0%, #c7d2fe 45%, #a78bfa 75%, #818cf8 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .h-titles p { font-size: 11px; color: var(--text2); margin-top: 1px; }
+    .h-right { display: flex; align-items: center; gap: 12px; margin-left: auto; }
+    .protect-pill {
+      display: flex; align-items: center; gap: 7px;
+      padding: 5px 14px; border-radius: 99px;
+      background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3);
+      font-size: 12px; font-weight: 600; color: #34d399;
+    }
+    .protect-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: #10b981; box-shadow: 0 0 8px #10b981;
+      animation: hb 2s ease-in-out infinite;
+    }
+    @keyframes hb { 0%,100%{transform:scale(1)} 50%{transform:scale(1.35)} }
+    .last-upd { font-size: 11px; color: var(--muted); }
+
+    /* ── SHELL ───────────────────────────────────────────── */
+    .shell { display: flex; flex: 1; min-height: 0; overflow: hidden; }
+
+    /* ── SIDEBAR ─────────────────────────────────────────── */
+    nav {
+      width: 230px; flex-shrink: 0;
+      background: rgba(9,11,22,0.95);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      overflow-y: auto; padding: 20px 12px 16px;
+    }
+    .nav-group { margin-bottom: 6px; }
+    .nav-group-label {
+      font-size: 10px; font-weight: 700; letter-spacing: 1.3px;
+      color: var(--muted); text-transform: uppercase; padding: 10px 12px 5px;
+    }
+    nav button {
+      display: flex; align-items: center; gap: 11px;
+      width: 100%; padding: 10px 12px; border: none;
+      background: transparent; border-radius: var(--r-sm);
+      color: var(--text2); font-size: 13px; font-weight: 500;
+      cursor: pointer; text-align: left; transition: all 0.15s; font-family: inherit;
+    }
+    nav button:hover { background: var(--surface2); color: var(--text); }
+    nav button.active {
+      background: linear-gradient(90deg, rgba(99,102,241,0.2), rgba(99,102,241,0.05));
+      color: #a5b4fc; font-weight: 600;
+      border-left: 2px solid var(--accent); padding-left: 10px;
+    }
+    .nav-icon-box {
+      width: 30px; height: 30px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; background: var(--surface3); flex-shrink: 0;
+    }
+    nav button.active .nav-icon-box { background: rgba(99,102,241,0.28); }
+    .nav-badge {
+      margin-left: auto; background: rgba(99,102,241,0.25); color: #a5b4fc;
+      font-size: 10px; font-weight: 700; padding: 2px 7px;
+      border-radius: 99px; border: 1px solid rgba(99,102,241,0.3);
+    }
+    .nav-footer {
+      margin-top: auto; padding: 14px 12px 0;
+      border-top: 1px solid var(--border);
+    }
+    .toggle-row {
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 12px; color: var(--text2);
+    }
+    .toggle-row span { display: flex; align-items: center; gap: 8px; }
+    .toggle-switch { position: relative; width: 36px; height: 20px; cursor: pointer; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider {
+      position: absolute; inset: 0; background: var(--success); border-radius: 99px; transition: background 0.2s;
+    }
+    .toggle-slider::before {
+      content: ''; position: absolute; left: 3px; top: 3px;
+      width: 14px; height: 14px; border-radius: 50%;
+      background: #fff; transform: translateX(16px); transition: transform 0.2s;
+    }
+
+    /* ── MAIN ────────────────────────────────────────────── */
+    main { flex: 1; overflow-y: auto; height: 100%; padding: 36px 44px; min-width: 0; }
+
+    .page-head {
+      margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: flex-end; justify-content: space-between;
+    }
+    .page-head h2 { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 4px; }
+    .page-head p  { font-size: 13px; color: var(--text2); }
+
+    /* ── STAT CARDS ──────────────────────────────────────── */
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin-bottom: 28px;
+    }
+    .stat-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--r); padding: 20px 22px 16px;
+      position: relative; overflow: hidden;
+      transition: transform 0.2s, box-shadow 0.2s; cursor: default;
+    }
+    .stat-card:hover { transform: translateY(-3px); box-shadow: 0 16px 40px rgba(0,0,0,0.5); }
+    .stat-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: var(--c-a, linear-gradient(90deg,var(--accent),var(--accent2)));
+    }
+    .stat-card::after {
+      content: ''; position: absolute; top: -30px; right: -30px;
+      width: 110px; height: 110px; border-radius: 50%;
+      background: var(--c-g, rgba(99,102,241,0.15)); filter: blur(38px); pointer-events: none;
+    }
+    .stat-card.c-red    { --c-a:linear-gradient(90deg,#f43f5e,#fb7185); --c-g:rgba(244,63,94,0.18); }
+    .stat-card.c-amber  { --c-a:linear-gradient(90deg,#f59e0b,#fcd34d); --c-g:rgba(245,158,11,0.18); }
+    .stat-card.c-cyan   { --c-a:linear-gradient(90deg,#06b6d4,#67e8f9); --c-g:rgba(6,182,212,0.16); }
+    .stat-card.c-green  { --c-a:linear-gradient(90deg,#10b981,#6ee7b7); --c-g:rgba(16,185,129,0.16); }
+    .stat-card.c-violet { --c-a:linear-gradient(90deg,#8b5cf6,#c4b5fd); --c-g:rgba(139,92,246,0.18); }
+    .stat-card.c-indigo { --c-a:linear-gradient(90deg,#6366f1,#818cf8); --c-g:rgba(99,102,241,0.16); }
+    .stat-top { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:10px; }
+    .stat-emoji { font-size:20px; line-height:1; }
+    .sparkline-canvas { width:64px; height:28px; display:block; opacity:0.85; }
+    .stat-label { font-size:10px; font-weight:700; color:var(--text2); text-transform:uppercase; letter-spacing:1px; margin-bottom:5px; }
+    .stat-value { font-size:38px; font-weight:900; line-height:1; letter-spacing:-2px; margin-bottom:4px; }
+    .stat-card.c-red    .stat-value { color:#fb7185; }
+    .stat-card.c-amber  .stat-value { color:#fbbf24; }
+    .stat-card.c-cyan   .stat-value { color:#22d3ee; }
+    .stat-card.c-green  .stat-value { color:#34d399; }
+    .stat-card.c-violet .stat-value { color:#c4b5fd; }
+    .stat-card.c-indigo .stat-value { color:#818cf8; }
+    .stat-sub  { font-size:11px; color:var(--muted); }
+    .stat-last { font-size:10px; color:var(--muted); margin-top:6px; }
+
+    /* ── CARDS ───────────────────────────────────────────── */
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--r); padding: 24px 26px; margin-bottom: 20px;
+    }
+    .card-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
+    .card-label {
+      font-size:11px; font-weight:700; color:var(--text2);
+      text-transform:uppercase; letter-spacing:1.1px;
+      display:flex; align-items:center; gap:9px;
+    }
+    .card-label::before {
+      content:''; display:block; width:3px; height:14px; border-radius:2px;
+      background:linear-gradient(180deg,var(--accent),var(--accent2));
+    }
+    .card-pill {
+      font-size:11px; padding:3px 11px; border-radius:99px;
+      background:var(--surface3); color:var(--text2); border:1px solid var(--border);
+    }
+    .two-col { display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:20px; }
+
+    #timelineCanvas { width:100%; height:130px; display:block; }
+    .chart-legend { display:flex; gap:18px; margin-top:12px; }
+    .leg-item { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text2); }
+    .leg-dot  { width:8px; height:8px; border-radius:50%; }
+
+    .bar-list  { display:flex; flex-direction:column; gap:12px; }
+    .bar-row   { display:flex; align-items:center; gap:10px; }
+    .bar-label { width:110px; flex-shrink:0; font-size:12px; color:var(--text2); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .bar-track { flex:1; height:7px; background:var(--surface3); border-radius:99px; overflow:hidden; }
+    .bar-fill  { height:100%; border-radius:99px; background:linear-gradient(90deg,var(--accent),var(--accent2)); }
+    .bar-n     { width:24px; text-align:right; font-size:11px; color:var(--muted); }
+
+    .donut-wrap   { display:flex; align-items:center; gap:28px; }
+    .donut        { position:relative; width:120px; height:120px; border-radius:50%; flex-shrink:0; }
+    .donut-hole   { position:absolute; inset:20px; background:var(--surface); border-radius:50%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; }
+    .dh-val       { font-size:24px; font-weight:900; letter-spacing:-1px; }
+    .dh-sub       { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.7px; }
+    .donut-legend { display:flex; flex-direction:column; gap:10px; flex:1; }
+    .dl-row       { display:flex; align-items:center; gap:9px; font-size:12px; }
+    .dl-dot       { width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+    .dl-name      { flex:1; color:var(--text2); }
+    .dl-count     { color:var(--muted); font-size:11px; }
+
+    /* ── EVENT TABLE ─────────────────────────────────────── */
+    .table-wrap { background:var(--surface); border:1px solid var(--border); border-radius:var(--r); overflow:hidden; }
+    .tbl-toolbar { display:flex; align-items:center; gap:10px; padding:18px 22px; border-bottom:1px solid var(--border); }
+    .tbl-toolbar h3 { font-size:15px; font-weight:700; margin-right:auto; }
+    .tbl-btn {
+      display:flex; align-items:center; gap:6px; padding:7px 14px; border-radius:var(--r-sm);
+      font-size:12px; font-weight:600; border:1px solid var(--border); background:var(--surface2);
+      color:var(--text2); cursor:pointer; font-family:inherit; transition:all 0.15s;
+    }
+    .tbl-btn:hover { background:var(--surface3); }
+    .tbl-btn.red { border-color:rgba(244,63,94,0.3); color:#fb7185; }
+    .filter-row {
+      display:flex; gap:8px; padding:12px 22px; border-bottom:1px solid var(--border);
+      background:var(--bg2); flex-wrap:wrap;
+    }
+    .filter-row select, .filter-row input {
+      padding:7px 12px; border-radius:var(--r-sm); font-size:12px;
+      background:var(--surface); border:1px solid var(--border); color:var(--text2);
+      outline:none; font-family:inherit;
+    }
+    .filter-row input { flex:1; min-width:150px; }
+
+    table { width:100%; border-collapse:collapse; }
+    thead th {
+      text-align:left; padding:11px 18px; font-size:10px; font-weight:700; color:var(--muted);
+      text-transform:uppercase; letter-spacing:0.9px; border-bottom:1px solid var(--border); background:var(--bg2);
+    }
+    tbody tr { border-bottom:1px solid var(--border2); cursor:pointer; transition:background 0.1s; }
+    tbody tr:hover { background:var(--surface2); }
+    tbody tr.rb { border-left:2px solid rgba(244,63,94,0.5); }
+    tbody tr.rw { border-left:2px solid rgba(245,158,11,0.4); }
+    tbody td { padding:12px 18px; font-size:13px; vertical-align:middle; }
+    .badge {
+      display:inline-flex; align-items:center; gap:4px; padding:3px 10px; border-radius:99px;
+      font-size:11px; font-weight:600; white-space:nowrap;
+    }
+    .badge.blocked  { background:rgba(244,63,94,0.12);  color:#fb7185; border:1px solid rgba(244,63,94,0.2); }
+    .badge.warning  { background:rgba(245,158,11,0.12); color:#fbbf24; border:1px solid rgba(245,158,11,0.2); }
+    .badge.regex    { background:rgba(99,102,241,0.12); color:#818cf8; border:1px solid rgba(99,102,241,0.2); }
+    .badge.bert     { background:rgba(139,92,246,0.12); color:#c4b5fd; border:1px solid rgba(139,92,246,0.2); }
+    .badge.category { background:var(--surface3); color:var(--text2); border:1px solid var(--border); }
+
+    /* expanded row */
+    .row-detail { display:none; background:var(--bg2); border-bottom:1px solid var(--border); }
+    .row-detail.open { display:table-row; }
+    .row-detail td { padding:12px 18px 16px 36px; font-size:12px; color:var(--text2); }
+    .rd-grid { display:flex; gap:28px; flex-wrap:wrap; }
+    .rd-item strong { color:var(--text); display:block; margin-bottom:2px; font-size:10px; text-transform:uppercase; letter-spacing:0.5px; }
+
+    /* page toggle tabs (preview only) */
+    .preview-tabs {
+      display: flex; gap: 8px; margin-bottom: 24px;
+    }
+    .preview-tab {
+      padding: 7px 16px; border-radius: var(--r-sm); font-size: 12px; font-weight: 600;
+      border: 1px solid var(--border); background: var(--surface2); color: var(--text2);
+      cursor: pointer; font-family: inherit; transition: all 0.15s;
+    }
+    .preview-tab.active {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff; border-color: transparent;
+    }
+    .preview-section { display: none; }
+    .preview-section.active { display: block; }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="h-logo">🛡️</div>
+  <div class="h-titles">
+    <h1>LLM Data Leakage Monitor</h1>
+    <p>Real-time · Offline · 100% on-device privacy protection</p>
+  </div>
+  <div class="h-right">
+    <div class="protect-pill"><div class="protect-dot"></div>Protection Active</div>
+    <div class="last-upd">Updated 10:46</div>
+  </div>
+</header>
+
+<div class="shell">
+
+  <!-- SIDEBAR -->
+  <nav>
+    <div class="nav-group">
+      <div class="nav-group-label">Overview</div>
+      <button class="active" onclick="switchTab('overview',this)">
+        <span class="nav-icon-box">📊</span> Dashboard
+      </button>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">Monitoring</div>
+      <button onclick="switchTab('events',this)">
+        <span class="nav-icon-box">📋</span> Event Log
+        <span class="nav-badge">47</span>
+      </button>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">Configuration</div>
+      <button onclick="switchTab('settings',this)">
+        <span class="nav-icon-box">⚙️</span> Settings
+      </button>
+      <button onclick="switchTab('about',this)">
+        <span class="nav-icon-box">ℹ️</span> About
+      </button>
+    </div>
+    <div class="nav-footer">
+      <div class="toggle-row">
+        <span>🔒 Detection</span>
+        <label class="toggle-switch">
+          <input type="checkbox" checked />
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main>
+
+    <!-- ══ OVERVIEW ══════════════════════════════ -->
+    <div class="preview-section active" id="sec-overview">
+      <div class="page-head">
+        <div>
+          <h2>Dashboard</h2>
+          <p>Real-time detection activity across all monitored sites</p>
+        </div>
+      </div>
+
+      <!-- Stat cards -->
+      <div class="stats-grid">
+        <div class="stat-card c-red">
+          <div class="stat-top"><span class="stat-emoji">🚫</span><canvas class="sparkline-canvas" id="sp1"></canvas></div>
+          <div class="stat-label">Total Blocked</div>
+          <div class="stat-value" id="cnt1">0</div>
+          <div class="stat-sub">all time</div>
+          <div class="stat-last">Last: 3m ago</div>
+        </div>
+        <div class="stat-card c-amber">
+          <div class="stat-top"><span class="stat-emoji">⚠️</span><canvas class="sparkline-canvas" id="sp2"></canvas></div>
+          <div class="stat-label">Total Warned</div>
+          <div class="stat-value" id="cnt2">0</div>
+          <div class="stat-sub">all time</div>
+          <div class="stat-last">Last: 12m ago</div>
+        </div>
+        <div class="stat-card c-cyan">
+          <div class="stat-top"><span class="stat-emoji">📅</span><canvas class="sparkline-canvas" id="sp3"></canvas></div>
+          <div class="stat-label">Today</div>
+          <div class="stat-value" id="cnt3">0</div>
+          <div class="stat-sub">last 24 h</div>
+          <div class="stat-last"></div>
+        </div>
+        <div class="stat-card c-green">
+          <div class="stat-top"><span class="stat-emoji">🌐</span><canvas class="sparkline-canvas" id="sp4"></canvas></div>
+          <div class="stat-label">Sites Protected</div>
+          <div class="stat-value" id="cnt4">0</div>
+          <div class="stat-sub">unique domains</div>
+          <div class="stat-last"></div>
+        </div>
+        <div class="stat-card c-violet">
+          <div class="stat-top"><span class="stat-emoji">🤖</span><canvas class="sparkline-canvas" id="sp5"></canvas></div>
+          <div class="stat-label">BERT Detections</div>
+          <div class="stat-value" id="cnt5">0</div>
+          <div class="stat-sub">NER model catches</div>
+          <div class="stat-last"></div>
+        </div>
+        <div class="stat-card c-indigo">
+          <div class="stat-top"><span class="stat-emoji">🏷️</span></div>
+          <div class="stat-label">Top Category</div>
+          <div class="stat-value" style="font-size:20px;color:#818cf8">Email</div>
+          <div class="stat-sub">18 detections</div>
+        </div>
+      </div>
+
+      <!-- Timeline -->
+      <div class="card">
+        <div class="card-top">
+          <div class="card-label">Activity — Last 24 Hours</div>
+          <div class="card-pill">Hourly buckets</div>
+        </div>
+        <canvas id="timeline"></canvas>
+        <div class="chart-legend">
+          <div class="leg-item"><div class="leg-dot" style="background:#f43f5e"></div>Blocked</div>
+          <div class="leg-item"><div class="leg-dot" style="background:#f59e0b"></div>Warned</div>
+        </div>
+      </div>
+
+      <!-- Category + Donut -->
+      <div class="two-col">
+        <div class="card" style="margin-bottom:0">
+          <div class="card-top"><div class="card-label">Top Categories</div></div>
+          <div class="bar-list" id="catChart"></div>
+        </div>
+        <div class="card" style="margin-bottom:0">
+          <div class="card-top"><div class="card-label">Detection Method</div></div>
+          <div class="donut-wrap">
+            <div class="donut" id="donut">
+              <div class="donut-hole"><div class="dh-val">47</div><div class="dh-sub">total</div></div>
+            </div>
+            <div class="donut-legend" id="donutLeg"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Domain bar -->
+      <div class="card">
+        <div class="card-top"><div class="card-label">Top Targeted Domains</div></div>
+        <div class="bar-list" id="domChart"></div>
+      </div>
+    </div>
+
+    <!-- ══ EVENT LOG ═════════════════════════════ -->
+    <div class="preview-section" id="sec-events">
+      <div class="page-head">
+        <div><h2>Event Log</h2><p>Full detection history — 47 events · click a row to expand</p></div>
+      </div>
+      <div class="table-wrap">
+        <div class="tbl-toolbar">
+          <h3>Detection History</h3>
+          <button class="tbl-btn">⬇ Export CSV</button>
+          <button class="tbl-btn red">🗑 Clear All</button>
+        </div>
+        <div class="filter-row">
+          <select><option>All actions</option><option>Blocked</option><option>Warning</option></select>
+          <select><option>All methods</option><option>Regex</option><option>BERT</option></select>
+          <select><option>All categories</option><option>Email</option><option>API Key</option><option>SSN</option></select>
+          <input type="text" placeholder="🔍  Filter by domain…" />
+        </div>
+        <table>
+          <thead><tr><th>Time</th><th>Action</th><th>Category</th><th>Method</th><th>Domain</th><th>Source</th></tr></thead>
+          <tbody id="evtBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══ SETTINGS ══════════════════════════════ -->
+    <div class="preview-section" id="sec-settings">
+      <div class="page-head"><div><h2>Settings</h2><p>Configure detection behaviour and domain allowlist</p></div></div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px">
+        <div class="card" style="margin-bottom:0">
+          <div style="font-size:14px;font-weight:700;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--border)">⚙️ Detection Mode</div>
+          <div style="margin-bottom:16px">
+            <div style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:7px">Active Mode</div>
+            <select style="width:100%;padding:10px 13px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-size:13px;outline:none;font-family:inherit">
+              <option>🚫  Block — clear input and prevent submission</option>
+              <option>⚠️  Warn only — highlight but allow typing</option>
+              <option>○  Off — disable all detection</option>
+            </select>
+          </div>
+          <button style="padding:10px 22px;border-radius:var(--r-sm);font-size:13px;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;cursor:pointer;font-family:inherit">Save Settings</button>
+        </div>
+        <div class="card" style="margin-bottom:0">
+          <div style="font-size:14px;font-weight:700;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--border)">🌐 Domain Allowlist</div>
+          <div style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:7px">Trusted Domains</div>
+          <textarea style="width:100%;min-height:90px;padding:10px 13px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text2);font-size:12px;font-family:monospace;resize:vertical;outline:none">localhost
+internal.corp</textarea>
+          <div style="font-size:11px;color:var(--muted);margin-top:6px;margin-bottom:14px">Extension stays silent on these domains.</div>
+          <button style="padding:10px 22px;border-radius:var(--r-sm);font-size:13px;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;cursor:pointer;font-family:inherit">Save Allowlist</button>
+        </div>
+        <div class="card" style="margin-bottom:0">
+          <div style="font-size:14px;font-weight:700;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--border)">📊 Status</div>
+          <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border2);font-size:13px"><span style="color:var(--text2);font-size:12px">Detection mode</span><span style="font-weight:700">Block</span></div>
+          <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border2);font-size:13px"><span style="color:var(--text2);font-size:12px">BERT model</span><span style="font-weight:700;color:var(--success)">Loaded ✓</span></div>
+          <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border2);font-size:13px"><span style="color:var(--text2);font-size:12px">Allowlisted domains</span><span style="font-weight:700">2</span></div>
+          <div style="display:flex;justify-content:space-between;padding:10px 0;font-size:13px"><span style="color:var(--text2);font-size:12px">Events stored</span><span style="font-weight:700">47</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ ABOUT ══════════════════════════════════ -->
+    <div class="preview-section" id="sec-about">
+      <div class="page-head"><div><h2>About</h2><p>How LLM Data Leakage Monitor works under the hood</p></div></div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px">
+        <div class="card" style="margin-bottom:0">
+          <div style="font-size:14px;font-weight:700;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--border)">🏗️ Architecture</div>
+          <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border2);font-size:13px"><span style="color:var(--text2);font-size:12px">Extension type</span><span style="font-weight:700">Chrome MV3</span></div>
+          <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border2);font-size:13px"><span style="color:var(--text2);font-size:12px">Version</span><span style="font-weight:700">1.6</span></div>
+          <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border2);font-size:13px"><span style="color:var(--text2);font-size:12px">Remote requests</span><span style="font-weight:700;color:var(--success)">None — 100% local</span></div>
+          <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border2);font-size:13px"><span style="color:var(--text2);font-size:12px">NER model</span><span style="font-weight:700">TinyBERT NER (ONNX)</span></div>
+          <div style="display:flex;justify-content:space-between;padding:10px 0;font-size:13px"><span style="color:var(--text2);font-size:12px">Regex patterns</span><span style="font-weight:700">26 patterns · 15+ categories</span></div>
+        </div>
+        <div class="card" style="margin-bottom:0">
+          <div style="font-size:14px;font-weight:700;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--border)">🔍 Detection Pipeline</div>
+          ${[['1','Input Captured','Text typed, pasted, or dropped is intercepted in real time.'],
+             ['2','Layer 1 — Regex (instant)','26 patterns detect SSNs, API keys, emails, JWTs, private keys and more.'],
+             ['3','Layer 2 — BERT NER (offline)','TinyBERT detects named entities that regex would miss — all locally.'],
+             ['4','Action Taken','Block clears the field. Warn highlights it. Every event is logged locally.']]
+            .map(([n,t,d])=>`<div style="display:flex;gap:14px;padding:13px 0;border-bottom:1px solid var(--border2)">
+              <div style="width:28px;height:28px;border-radius:50%;flex-shrink:0;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;box-shadow:0 0 12px rgba(99,102,241,0.35)">${n}</div>
+              <div><strong style="font-size:13px;font-weight:700;display:block;margin-bottom:3px">${t}</strong><p style="font-size:12px;color:var(--text2);line-height:1.6">${d}</p></div>
+            </div>`).join('')}
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+  // ── Mock data ────────────────────────────────────────────────
+  const mockEvents = [
+    { time: Date.now()-180000,  action:'Blocked', category:'Email',       method:'regex', domain:'chat.openai.com',  source:'paste' },
+    { time: Date.now()-720000,  action:'Warning', category:'API Key',     method:'regex', domain:'claude.ai',        source:'input' },
+    { time: Date.now()-1800000, action:'Blocked', category:'SSN',         method:'regex', domain:'gemini.google.com',source:'paste' },
+    { time: Date.now()-3600000, action:'Blocked', category:'JWT Token',   method:'regex', domain:'chat.openai.com',  source:'input' },
+    { time: Date.now()-7200000, action:'Warning', category:'Password',    method:'bert',  domain:'chat.openai.com',  source:'input' },
+    { time: Date.now()-10800000,action:'Blocked', category:'AWS Key',     method:'regex', domain:'perplexity.ai',    source:'paste' },
+    { time: Date.now()-14400000,action:'Blocked', category:'Email',       method:'regex', domain:'claude.ai',        source:'drop'  },
+    { time: Date.now()-18000000,action:'Warning', category:'Full Name',   method:'bert',  domain:'gemini.google.com',source:'input' },
+    { time: Date.now()-21600000,action:'Blocked', category:'Credit Card', method:'regex', domain:'chat.openai.com',  source:'paste' },
+    { time: Date.now()-86400000,action:'Blocked', category:'Private Key', method:'regex', domain:'chat.openai.com',  source:'paste' },
+  ];
+
+  // ── Counter animation ────────────────────────────────────────
+  function animCount(id, target) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    let s = 0, steps = 25;
+    const t = setInterval(() => {
+      s++;
+      el.textContent = Math.round(target * s / steps);
+      if (s >= steps) { el.textContent = target; clearInterval(t); }
+    }, 20);
+  }
+
+  // ── Sparkline ────────────────────────────────────────────────
+  function sparkline(id, data, color) {
+    const c = document.getElementById(id); if (!c) return;
+    const dpr=window.devicePixelRatio||1, W=64, H=28;
+    c.width=W*dpr; c.height=H*dpr;
+    const ctx=c.getContext('2d'); ctx.scale(dpr,dpr);
+    const max=Math.max(...data,1);
+    const pts=data.map((v,i)=>({x:i*(W/(data.length-1)),y:H-(v/max)*(H-4)-2}));
+    const grad=ctx.createLinearGradient(0,0,0,H);
+    grad.addColorStop(0,color+'55'); grad.addColorStop(1,color+'00');
+    ctx.beginPath(); ctx.moveTo(pts[0].x,H);
+    pts.forEach(p=>ctx.lineTo(p.x,p.y));
+    ctx.lineTo(pts[pts.length-1].x,H); ctx.closePath();
+    ctx.fillStyle=grad; ctx.fill();
+    ctx.beginPath(); ctx.moveTo(pts[0].x,pts[0].y);
+    for(let i=0;i<pts.length-1;i++){const cx=(pts[i].x+pts[i+1].x)/2;ctx.bezierCurveTo(cx,pts[i].y,cx,pts[i+1].y,pts[i+1].x,pts[i+1].y);}
+    ctx.strokeStyle=color; ctx.lineWidth=1.5; ctx.stroke();
+  }
+
+  // ── Timeline ─────────────────────────────────────────────────
+  function drawTimeline() {
+    const canvas=document.getElementById('timeline'); if(!canvas) return;
+    const HOURS=24, hour=3600000, now=Date.now();
+    const blocked=new Array(HOURS).fill(0), warned=new Array(HOURS).fill(0);
+    mockEvents.forEach(e=>{
+      const age=now-e.time; if(age>HOURS*hour) return;
+      const b=HOURS-1-Math.floor(age/hour);
+      if(e.action==='Blocked') blocked[b]++; else warned[b]++;
+    });
+    const maxVal=Math.max(...blocked.map((v,i)=>v+warned[i]),3);
+    const dpr=window.devicePixelRatio||1;
+    const rect=canvas.getBoundingClientRect();
+    canvas.width=rect.width*dpr; canvas.height=rect.height*dpr;
+    const ctx=canvas.getContext('2d'); ctx.scale(dpr,dpr);
+    const W=rect.width,H=rect.height,PL=30,PR=12,PT=8,PB=24;
+    const plotW=W-PL-PR,plotH=H-PT-PB,step=plotW/(HOURS-1);
+    ctx.clearRect(0,0,W,H);
+    for(let i=0;i<=4;i++){
+      const y=PT+plotH-(i/4)*plotH;
+      ctx.beginPath();ctx.moveTo(PL,y);ctx.lineTo(W-PR,y);
+      ctx.strokeStyle=i===0?'rgba(99,120,200,0.12)':'rgba(99,120,200,0.06)';
+      ctx.lineWidth=1;ctx.setLineDash(i===0?[]:[3,4]);ctx.stroke();ctx.setLineDash([]);
+      if(i>0){ctx.fillStyle='rgba(100,116,139,0.65)';ctx.font='9px Inter,system-ui';ctx.fillText(Math.round((i/4)*maxVal),2,y+3);}
+    }
+    [[warned,'rgba(245,158,11,0.15)','#f59e0b'],[blocked,'rgba(244,63,94,0.18)','#f43f5e']].forEach(([data,fill,stroke])=>{
+      const pts=data.map((v,i)=>({x:PL+i*step,y:PT+plotH-(v/maxVal)*plotH}));
+      function smooth(p){ctx.beginPath();ctx.moveTo(p[0].x,p[0].y);for(let i=0;i<p.length-1;i++){const cx=(p[i].x+p[i+1].x)/2;ctx.bezierCurveTo(cx,p[i].y,cx,p[i+1].y,p[i+1].x,p[i+1].y);}}
+      const grad=ctx.createLinearGradient(0,PT,0,PT+plotH);
+      grad.addColorStop(0,fill.replace(/[\d.]+\)$/,'0.45)'));grad.addColorStop(1,fill.replace(/[\d.]+\)$/,'0.01)'));
+      smooth(pts);ctx.lineTo(pts[pts.length-1].x,PT+plotH);ctx.lineTo(pts[0].x,PT+plotH);ctx.closePath();ctx.fillStyle=grad;ctx.fill();
+      smooth(pts);ctx.strokeStyle=stroke;ctx.lineWidth=2.5;ctx.lineJoin='round';ctx.lineCap='round';ctx.stroke();
+      pts.forEach((p,i)=>{if(!data[i])return;ctx.beginPath();ctx.arc(p.x,p.y,3.5,0,Math.PI*2);ctx.fillStyle=stroke;ctx.fill();ctx.strokeStyle='#060810';ctx.lineWidth=1.5;ctx.stroke();});
+    });
+    ctx.fillStyle='rgba(100,116,139,0.65)';ctx.font='9px Inter,system-ui';
+    for(let i=0;i<HOURS;i+=4){const x=PL+i*step;const lbl=new Date(now-(HOURS-1-i)*hour).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});ctx.fillText(lbl,x-14,H-4);}
+  }
+
+  // ── Category bar ─────────────────────────────────────────────
+  function drawCatChart() {
+    const cats={};
+    mockEvents.forEach(e=>{cats[e.category]=(cats[e.category]||0)+1;});
+    const sorted=Object.entries(cats).sort((a,b)=>b[1]-a[1]);
+    const max=sorted[0][1];
+    document.getElementById('catChart').innerHTML=sorted.map(([l,c])=>
+      `<div class="bar-row"><span class="bar-label">${l}</span><div class="bar-track"><div class="bar-fill" style="width:${(c/max*100).toFixed(0)}%"></div></div><span class="bar-n">${c}</span></div>`
+    ).join('');
+  }
+
+  // ── Domain bar ───────────────────────────────────────────────
+  function drawDomChart() {
+    const doms={};
+    mockEvents.forEach(e=>{doms[e.domain]=(doms[e.domain]||0)+1;});
+    const sorted=Object.entries(doms).sort((a,b)=>b[1]-a[1]);
+    const max=sorted[0][1];
+    document.getElementById('domChart').innerHTML=sorted.map(([d,c])=>
+      `<div class="bar-row"><span class="bar-label">${d}</span><div class="bar-track"><div class="bar-fill" style="width:${(c/max*100).toFixed(0)}%;background:linear-gradient(90deg,#8b5cf6,#6366f1)"></div></div><span class="bar-n">${c}</span></div>`
+    ).join('');
+  }
+
+  // ── Donut ────────────────────────────────────────────────────
+  function drawDonut() {
+    const regexN=mockEvents.filter(e=>e.method==='regex').length;
+    const bertN=mockEvents.filter(e=>e.method==='bert').length;
+    const total=mockEvents.length;
+    const rP=(regexN/total*100).toFixed(1), bP=(bertN/total*100).toFixed(1);
+    document.getElementById('donut').style.background=
+      `conic-gradient(#6366f1 0% ${rP}%,#8b5cf6 ${rP}% ${(+rP+ +bP).toFixed(1)}%,#1e2640 ${(+rP+ +bP).toFixed(1)}% 100%)`;
+    document.getElementById('donutLeg').innerHTML=[
+      {color:'#6366f1',label:'Regex',count:regexN,pct:rP},
+      {color:'#8b5cf6',label:'BERT NER',count:bertN,pct:bP},
+    ].map(r=>`<div class="dl-row"><div class="dl-dot" style="background:${r.color}"></div><span class="dl-name">${r.label}</span><span class="dl-count">${r.count} (${r.pct}%)</span></div>`).join('');
+  }
+
+  // ── Event table ──────────────────────────────────────────────
+  function drawEventTable() {
+    function timeAgo(ts){const s=Math.floor((Date.now()-ts)/1000);if(s<60)return s+'s ago';if(s<3600)return Math.floor(s/60)+'m ago';return Math.floor(s/3600)+'h ago';}
+    const tbody=document.getElementById('evtBody');
+    if(!tbody) return;
+    tbody.innerHTML=mockEvents.map((e,idx)=>{
+      const rc=e.action==='Blocked'?'rb':'rw';
+      const ab=e.action==='Blocked'?'<span class="badge blocked">🚫 Blocked</span>':'<span class="badge warning">⚠ Warning</span>';
+      const mb=e.method==='bert'?'<span class="badge bert">BERT</span>':'<span class="badge regex">Regex</span>';
+      return `<tr class="${rc}" onclick="toggleDetail(${idx})">
+        <td style="color:var(--muted);font-size:12px">${timeAgo(e.time)}</td>
+        <td>${ab}</td><td><span class="badge category">${e.category}</span></td>
+        <td>${mb}</td><td style="font-size:12px">${e.domain}</td>
+        <td style="color:var(--muted);font-size:12px">${e.source}</td>
+      </tr>
+      <tr class="row-detail" id="det-${idx}">
+        <td colspan="6"><div class="rd-grid">
+          <div class="rd-item"><strong>Full Time</strong>${new Date(e.time).toLocaleString()}</div>
+          <div class="rd-item"><strong>Method</strong>${e.method}</div>
+          <div class="rd-item"><strong>Category</strong>${e.category}</div>
+          <div class="rd-item"><strong>Domain</strong>${e.domain}</div>
+          <div class="rd-item"><strong>Source</strong>${e.source}</div>
+        </div></td>
+      </tr>`;
+    }).join('');
+  }
+
+  function toggleDetail(idx) {
+    const d=document.getElementById('det-'+idx);
+    if(d) d.classList.toggle('open');
+  }
+
+  // ── Nav switch ───────────────────────────────────────────────
+  function switchTab(name, btn) {
+    document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.preview-section').forEach(s=>s.classList.remove('active'));
+    document.getElementById('sec-'+name).classList.add('active');
+    if(name==='events') drawEventTable();
+  }
+
+  // ── Init ─────────────────────────────────────────────────────
+  animCount('cnt1', 34);
+  animCount('cnt2', 13);
+  animCount('cnt3', 9);
+  animCount('cnt4', 7);
+  animCount('cnt5', 6);
+
+  sparkline('sp1',[2,5,3,8,4,9,7],'#f43f5e');
+  sparkline('sp2',[1,3,2,4,1,5,3],'#f59e0b');
+  sparkline('sp3',[0,2,1,3,2,4,3],'#06b6d4');
+  sparkline('sp4',[2,3,3,4,5,6,7],'#10b981');
+  sparkline('sp5',[0,1,1,2,1,3,2],'#8b5cf6');
+
+  drawTimeline();
+  drawCatChart();
+  drawDomChart();
+  drawDonut();
+
+  window.addEventListener('resize', drawTimeline);
+</script>
+</body>
+</html>
