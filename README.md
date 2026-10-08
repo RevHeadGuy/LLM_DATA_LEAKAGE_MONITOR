@@ -14,6 +14,9 @@ This project uses a pre-trained, fine-tuned **TinyBERT** model for **Named Entit
 
 The irony: this is an ML-powered security layer built to protect against data leakage *into* Gen AI tools like ChatGPT, Claude, and Gemini.
 
+<img width="1536" height="1024" alt="image" src="https://github.com/user-attachments/assets/948466cf-3d21-4337-acca-056e01df0388" />
+
+
 ---
 
 ## Model
