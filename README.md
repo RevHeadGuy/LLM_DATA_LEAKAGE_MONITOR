@@ -4,7 +4,6 @@ A Chrome browser extension that prevents accidental sensitive data leakage into 
 
 Detection runs in two layers — fast regex patterns followed by a local offline BERT-tiny ONNX model — entirely inside the browser. No data is ever sent to an external server.
 
----
 
 ## Project Type
 
@@ -16,8 +15,6 @@ The irony: this is an ML-powered security layer built to protect against data le
 
 <img width="1536" height="1024" alt="image" src="https://github.com/user-attachments/assets/948466cf-3d21-4337-acca-056e01df0388" />
 
-
----
 
 ## Model
 
@@ -35,7 +32,6 @@ The irony: this is an ML-powered security layer built to protect against data le
 
 > **Note on fine-tuning:** The model is used as-is from HuggingFace. No custom fine-tuning is performed here. For better PII-specific accuracy, the model could be fine-tuned on a dataset containing labeled API keys, passwords, SSNs, etc. using HuggingFace `transformers` + `optimum` for ONNX export.
 
----
 
 ## APIs Used
 
@@ -55,7 +51,6 @@ The irony: this is an ML-powered security layer built to protect against data le
 
 After the one-time model download, the extension makes **zero network requests** during normal operation.
 
----
 
 ## Features
 
@@ -102,7 +97,6 @@ Compact quick-access panel:
 - 5 most recent detections mini-list with time-ago labels
 - **Open Full Dashboard** button
 
----
 
 ## Project Structure
 
@@ -125,7 +119,6 @@ libs/
   page-injected-module.js   ES module injected into page context to run BERT inference
 ```
 
----
 
 ## Requirements
 
@@ -133,7 +126,6 @@ libs/
 - Node.js and npm (for the automated test script)
 - Python 3 and pip (for downloading the BERT model)
 
----
 
 ## Installation
 
@@ -163,7 +155,6 @@ This downloads `onnx-community/TinyBERT-finetuned-NER-ONNX` from HuggingFace and
 4. Select this project folder
 5. The extension icon appears in your toolbar
 
----
 
 ## Usage
 
@@ -189,13 +180,11 @@ Switch modes from the popup, the sidebar quick toggle, or the Settings page.
 
 Add trusted domains (e.g. `localhost`, `internal.corp`) in Settings → Domain Allowlist. The extension stays silent on those domains.
 
----
 
 ## Preview
 
 Open `dashboard_preview.html` directly in Chrome to see a fully interactive dashboard UI with mock data — no extension installation needed.
 
----
 
 ## Testing
 
@@ -217,7 +206,6 @@ If you see a model-not-found error, re-run:
 python download_model.py
 ```
 
----
 
 ## Architecture
 
@@ -248,7 +236,6 @@ User types / pastes text
 **Why page-injected-module.js and not background.js for inference?**
 Chrome MV3 service workers cannot spawn `blob:` Web Workers, which ONNX Runtime WebAssembly requires for multi-threaded inference. The model therefore runs in the page's JS context where blob workers are fully supported. The background service worker only handles lifecycle events and model status storage.
 
----
 
 ## Bug fixes 
 
@@ -265,7 +252,6 @@ Chrome MV3 service workers cannot spawn `blob:` Web Workers, which ONNX Runtime 
 | Popup inline `<script>` violated MV3 CSP | Extracted to `popup.js` |
 | ONNX model filename mismatch | Renamed on disk; `download_model.py` handles it automatically |
 
----
 
 ## Privacy
 
