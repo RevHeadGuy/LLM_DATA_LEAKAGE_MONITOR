@@ -1,261 +1,447 @@
-# LLM Data Leakage Monitor
 
-A Chrome browser extension that prevents accidental sensitive data leakage into LLM tools and AI chat interfaces by intercepting text before it is submitted.
+<div align="center">
 
-Detection runs in two layers — fast regex patterns followed by a local offline BERT-tiny ONNX model — entirely inside the browser. No data is ever sent to an external server.
+<img width="100%" src="https://capsule-render.vercel.app/api?type=rect&height=230&color=0:050816,45:0B1F36,100:064E3B&text=LLM%20DATA%20LEAKAGE%20MONITOR&fontColor=F0FDF4&fontSize=34&fontAlignY=40&desc=LOCAL%20AI%20%2F%20PRIVACY%20ENGINEERING%20%2F%20BROWSER%20SECURITY&descSize=13&descColor=6EE7B7&descAlignY=63" alt="LLM Data Leakage Monitor"/>
 
+<br/>
 
-## Project Type
+### Your data. Your browser. Your control.
 
-**Applied ML project** 
+**A privacy-focused Chrome extension that detects potentially sensitive information before it reaches AI chat interfaces.**
 
-This project uses a pre-trained, fine-tuned **TinyBERT** model for **Named Entity Recognition (NER)** — a supervised NLP classification task. It does not generate any content. It classifies whether a piece of text contains PII or sensitive data, then acts on that classification inside the browser.
+Regex precision at the first layer. Local TinyBERT inference at the second. No external API calls during normal operation.
 
-The irony: this is an ML-powered security layer built to protect against data leakage *into* Gen AI tools like ChatGPT, Claude, and Gemini.
+<br/>
 
-<img width="1536" height="1024" alt="image" src="https://github.com/user-attachments/assets/948466cf-3d21-4337-acca-056e01df0388" />
+<img src="https://img.shields.io/badge/PLATFORM-Chrome%20MV3-4285F4?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Chrome Manifest V3"/>
+<img src="https://img.shields.io/badge/ML-TinyBERT%20%2B%20ONNX-0EA5E9?style=for-the-badge" alt="TinyBERT and ONNX"/>
+<img src="https://img.shields.io/badge/INFERENCE-LOCAL%20%26%20OFFLINE-059669?style=for-the-badge" alt="Local inference"/>
+<img src="https://img.shields.io/badge/PROJECT-Applied%20ML-7C3AED?style=for-the-badge" alt="Applied machine learning"/>
 
+<br/><br/>
 
-## Model
+[Features](#-features) · [Architecture](#-how-it-works) · [Model](#-the-ml-model) · [Installation](#-installation) · [Testing](#-testing) · [Privacy](#-privacy-by-design)
 
-| Property | Value |
+</div>
+
+---
+
+## The Problem
+
+AI assistants are useful, but prompts can accidentally contain information that should never leave your device.
+
+An email address, access token, database connection string, private key, or personal identifier can end up in a prompt before you realize it.
+
+**LLM Data Leakage Monitor adds a detection layer between your input and the AI interface.**
+
+It examines text in supported input fields, detects potentially sensitive content, and applies your selected protection mode before the content is submitted.
+
+<div align="center">
+
+<img width="100%" src="https://github.com/user-attachments/assets/948466cf-3d21-4337-acca-056e01df0388" alt="LLM Data Leakage Monitor dashboard preview"/>
+
+<sub>Privacy-first detection with an interactive dashboard and local event history.</sub>
+
+</div>
+
+## ⚡ At a Glance
+
+<table>
+<tr>
+<td width="50%" valign="top">
+
+### 🛡️ Two-Layer Detection
+
+- 26 regex patterns
+- 15+ sensitive-data categories
+- Local TinyBERT NER inference
+- Configurable Block, Warn, and Off modes
+
+</td>
+<td width="50%" valign="top">
+
+### 🔒 Local-First Processing
+
+- No external API calls during normal operation
+- ONNX Runtime WebAssembly inference
+- Local browser storage
+- One-time model download during setup
+
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
+
+### 📊 Security Dashboard
+
+- Detection statistics and trends
+- Activity timeline and category charts
+- Detection method breakdown
+- Filterable event history and CSV export
+
+</td>
+<td width="50%" valign="top">
+
+### ⚙️ Browser Integration
+
+- Chrome Manifest V3
+- Popup with model status and recent events
+- Domain allowlist
+- Settings and quick protection controls
+
+</td>
+</tr>
+</table>
+
+---
+
+## 🧠 How It Works
+
+The extension uses a layered pipeline designed to check common patterns quickly before invoking the local ML model.
+
+```mermaid
+flowchart TD
+    A["User types, pastes, or submits text"] --> B["Content Script"]
+    B --> C{"Regex Layer<br/>26 patterns"}
+    C -->|Sensitive pattern found| D["Apply Block or Warn"]
+    C -->|No regex match| E["Local TinyBERT NER"]
+    E --> F["ONNX Runtime WebAssembly"]
+    F --> G{"Detection result"}
+    G -->|Entity detected| H["Apply Block or Warn"]
+    G -->|No entity detected| I["Allow input to continue"]
+    D --> J["Save event locally"]
+    H --> J
+    I --> K["Continue normal interaction"]
+    J --> L["Popup and Dashboard"]
+```
+
+### Layer 1 — Regex Detection
+
+Fast, deterministic pattern matching identifies common sensitive values without needing ML inference.
+
+The current implementation contains 26 patterns spanning 15+ categories, including:
+
+| Category | Examples |
 |---|---|
-| HuggingFace repo | [`onnx-community/TinyBERT-finetuned-NER-ONNX`](https://huggingface.co/onnx-community/TinyBERT-finetuned-NER-ONNX) |
+| Personal information | Email addresses, phone numbers, SSNs |
+| Financial data | Credit card number patterns |
+| Credentials | API keys, access tokens, bearer tokens, JWTs |
+| Infrastructure secrets | Database connection strings, PEM private keys |
+| Identity records | Medical record numbers, employee IDs, passport and driver's license patterns |
+| Sensitive phrases | Patterns such as `"My password is..."` |
+
+Regex detection is the first line of defense. Matching a pattern does not prove that a value is genuine or active, and some legitimate text may trigger a warning.
+
+### Layer 2 — Local TinyBERT Inference
+
+When the regex layer does not find a match, the extension can pass the input through a locally executed TinyBERT-based Named Entity Recognition model.
+
+- Detects named entities such as persons, locations, and organizations.
+- Runs through ONNX Runtime WebAssembly.
+- Does not require a remote inference API.
+- Can identify some entities that pattern matching alone may miss.
+
+**Important:** The current model is a general NER model, not a custom-trained PII classifier. It is not guaranteed to recognize passwords, API keys, or every type of sensitive information. Regex and NER complement each other; neither guarantees complete protection.
+
+### Protection Modes
+
+| Mode | Behavior |
+|---|---|
+| 🔴 **Block** | Clears the affected field and displays a red notification. |
+| 🟠 **Warn** | Highlights the field in amber and displays a warning. |
+| ⚪ **Off** | Disables detection. |
+
+Regex matches can be blocked synchronously in supported input events. BERT-only findings are processed asynchronously, so the implementation clears the field after inference rather than guaranteeing that every sensitive value is prevented from momentarily entering the page.
+
+---
+
+## 🧪 The ML Model
+
+This is an **applied machine learning project**, not a generative AI application.
+
+The model performs token classification for Named Entity Recognition (NER). It does not generate responses or understand every kind of secret.
+
+| Property | Details |
+|---|---|
+| Model repository | [`onnx-community/TinyBERT-finetuned-NER-ONNX`](https://huggingface.co/onnx-community/TinyBERT-finetuned-NER-ONNX) |
 | Original base | `adel-cybral/TinyBERT-finetuned-NER` |
-| Architecture | `BertForTokenClassification` (4-layer TinyBERT) |
-| Task | Named Entity Recognition (token classification) |
-| Labels | `LABEL_0` (no entity) through `LABEL_8` (9 classes) |
-| Format | ONNX, quantized — runs via ONNX Runtime WebAssembly |
-| Size | ~36 MB (quantized) |
-| Fine-tuning | Done by model author on a NER dataset — **not fine-tuned in this project** |
-| Inference | 100% offline, inside the browser, no API calls |
+| Architecture | Four-layer TinyBERT, `BertForTokenClassification` |
+| Task | Named Entity Recognition |
+| Output labels | `LABEL_0` through `LABEL_8` |
+| Runtime | ONNX Runtime WebAssembly |
+| Model size | Approximately 36 MB, quantized |
+| Fine-tuning | No custom fine-tuning in this project |
+| Inference location | Browser, locally |
 
-> **Note on fine-tuning:** The model is used as-is from HuggingFace. No custom fine-tuning is performed here. For better PII-specific accuracy, the model could be fine-tuned on a dataset containing labeled API keys, passwords, SSNs, etc. using HuggingFace `transformers` + `optimum` for ONNX export.
+### Why ONNX?
 
+ONNX provides a portable model representation that can run through a browser-compatible inference runtime.
 
-## APIs Used
+In this project, it enables local inference without sending text to a hosted model API.
 
-**No external APIs.** Everything runs locally.
+The model is downloaded during setup and stored in the project. The extension also bundles its JavaScript and WebAssembly runtime dependencies locally.
 
-| API | Type | Used for |
-|---|---|---|
-| `chrome.storage.local` | Browser API | Saving settings and event history |
-| `chrome.runtime` | Browser API | Message passing between scripts |
-| `chrome.tabs` | Browser API | Opening the dashboard |
-| `CustomEvent` / `dispatchEvent` | Browser API | Script-to-script communication |
-| `MutationObserver` | Browser API | Watching for new input fields |
-| `Canvas API` | Browser API | Timeline and sparkline charts |
-| `@xenova/transformers` | Local JS library | Running BERT inference in browser |
-| `ONNX Runtime WebAssembly` | Local `.wasm` files | Executing the ONNX model |
-| HuggingFace Hub | External (setup only) | One-time model download via `download_model.py` |
+---
 
-After the one-time model download, the extension makes **zero network requests** during normal operation.
+## 📊 Dashboard & Monitoring
 
+The full-page dashboard turns detection events into a reviewable activity history.
 
-## Features
+| Component | What it shows |
+|---|---|
+| **Live statistic cards** | Total blocked, total warned, recent activity, protected sites, BERT detections, and top category |
+| **Activity timeline** | Hourly event activity over the last 24 hours |
+| **Category chart** | Distribution of detected sensitive-data categories |
+| **Detection method chart** | Regex versus BERT detection breakdown |
+| **Targeted domains** | Domains associated with recorded events |
+| **Event log** | Up to 200 events with filters and expandable details |
+| **CSV export** | Export recorded event history |
+| **Settings** | Protection mode, domain allowlist, and extension status |
 
-### Detection
-- Monitors text inputs, textareas, and contenteditable elements in real time
-- Intercepts typing, paste, drag-and-drop, and form submission
-- **Layer 1 — Regex** — 26 patterns covering 15+ categories:
-  - Email addresses, phone numbers, SSNs
-  - Credit card numbers (Visa, MC, Amex, Discover)
-  - AWS / Google API keys, JWTs, PEM private keys
-  - Database connection strings (MongoDB, PostgreSQL, MySQL, Redis…)
-  - OAuth / bearer tokens, secret keys, access tokens
-  - Medical record numbers, employee IDs, driver's licenses, passports
-  - `"My name is…"` / `"My password is…"` phrase patterns
-- **Layer 2 — BERT NER** — offline TinyBERT ONNX model detects named entities (persons, locations, organisations) that regex would miss
-- On detection: **Block** mode clears and resets the field; **Warn** mode highlights it amber
+The popup provides quick access to model status, protection controls, counters, recent events, and the full dashboard.
 
-### Dashboard (full-page UI)
-Open via the popup or directly at the extension's `dashboard.html`:
-- **Animated header** with shimmer sweep, gradient title, and "Protection Active" pill
-- **6 live stat cards** — each with a 7-day sparkline trend chart and animated number counter:
-  - Total Blocked, Total Warned, Today (last 24 h), Sites Protected, BERT Detections, Top Category
-- **Activity timeline** — smooth Bézier area chart for the last 24 hours (hourly buckets)
-- **Top Categories bar chart** — shows which data types are most frequently detected
-- **Detection Method donut** — Regex vs BERT split with percentages
-- **Top Targeted Domains bar chart**
-- **Event Log page** — full history (up to 200 events) with:
-  - Color-coded rows (red border = blocked, amber = warned)
-  - Click-to-expand row detail (timestamp, method, category, domain, source)
-  - Filters by action, method, category, domain
-  - CSV export with "Exporting… → Done ✓" feedback
-  - Clear all button
-- **Settings page** — mode selector, domain allowlist, extension status card
-- **About page** — architecture info and numbered detection pipeline walkthrough
-- **Last-updated timestamp** refreshes every 30 seconds
-- **Sidebar event count badge** shows total events without opening the log
-- **Quick on/off toggle** in sidebar — switch detection on/off without opening Settings
+---
 
-### Popup
-Compact quick-access panel:
-- Model status indicator (Loaded ✓ / Loading… / Failed ✗)
-- Blocked / Warned / Today stat counters
-- One-click mode toggle buttons (Block / Warn / Off)
-- 5 most recent detections mini-list with time-ago labels
-- **Open Full Dashboard** button
+## 🏗️ Project Architecture
 
-
-## Project Structure
-
-```
-manifest.json               Chrome MV3 extension manifest (v1.6)
-background.js               Service worker — lifecycle + model status relay
-content.js                  Content script — detection, blocking, event logging
-popup.html / popup.js       Compact popup UI
-dashboard.html              Full-page dashboard (HTML + CSS)
-dashboard.js                Dashboard logic — charts, table, settings, animations
-dashboard_preview.html      Standalone preview of the dashboard with mock data
-test_page.html              Demo page for manual testing
-test_regex_detection.js     Node.js automated test runner (regex + BERT)
-test_questions.json         200 labelled test cases
-download_model.py           Downloads the quantized BERT ONNX model from HuggingFace
-web_model/bert-tiny-ner/    Local ONNX model files
-wasm/                       ONNX Runtime WebAssembly binaries
-libs/
-  transformers.min.js       Bundled local copy of @xenova/transformers v2
-  page-injected-module.js   ES module injected into page context to run BERT inference
+```text
+Chrome Browser
+│
+├── manifest.json
+│
+├── background.js
+│   └── Extension lifecycle and model-status relay
+│
+├── content.js
+│   ├── Input monitoring and event handling
+│   ├── Regex detection
+│   ├── Block / Warn behavior
+│   └── Local event logging
+│
+├── page-injected-module.js
+│   └── TinyBERT ONNX inference in page context
+│
+├── popup.html / popup.js
+│   └── Quick controls and recent events
+│
+├── dashboard.html / dashboard.js
+│   └── Analytics, event history, settings, and charts
+│
+├── web_model/bert-tiny-ner/
+│   └── Local ONNX model
+│
+├── wasm/
+│   └── ONNX Runtime WebAssembly binaries
+│
+├── libs/
+│   ├── transformers.min.js
+│   └── page-injected-module.js
+│
+└── Testing
+    ├── test_page.html
+    ├── test_regex_detection.js
+    └── test_questions.json
 ```
 
+### Why does inference run in the page context?
 
-## Requirements
+The project uses a separate page-injected module for inference instead of loading the model inside the Manifest V3 background service worker.
 
-- Google Chrome or any Chromium-based browser
-- Node.js and npm (for the automated test script)
-- Python 3 and pip (for downloading the BERT model)
+The implementation uses this arrangement because the ONNX runtime's worker requirements are incompatible with the extension service-worker execution context used by this project.
 
+The background service worker remains responsible for lifecycle and model-status handling.
 
-## Installation
+---
 
-**1. Clone or download the repository**
+## 🚀 Installation
 
-**2. Install JavaScript dependencies**
+### Prerequisites
+
+- Google Chrome or another compatible Chromium-based browser
+- Node.js and npm for the test runner and JavaScript dependencies
+- Python 3 and pip for the model download script
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/RevHeadGuy/LLM_DATA_LEAKAGE_MONITOR.git
+cd LLM_DATA_LEAKAGE_MONITOR
+```
+
+### 2. Install dependencies
+
 ```bash
 npm install
-```
-
-**3. Install the Python model downloader dependency**
-```bash
 python -m pip install huggingface_hub
 ```
 
-**4. Download the local BERT ONNX model**
+### 3. Download the model
+
 ```bash
 python download_model.py
 ```
 
-This downloads `onnx-community/TinyBERT-finetuned-NER-ONNX` from HuggingFace and places it under `web_model/bert-tiny-ner/onnx/model_quantized.onnx`. The script also automatically renames the file if an older dot-separator version (`model.quantized.onnx`) is present.
+This downloads the quantized ONNX model from Hugging Face into the local model directory.
 
-**5. Load the extension in Chrome**
-1. Open `chrome://extensions/`
-2. Enable **Developer mode** (toggle, top right)
-3. Click **Load unpacked**
-4. Select this project folder
-5. The extension icon appears in your toolbar
+### 4. Load the extension
 
+1. Open `chrome://extensions/`.
+2. Enable **Developer mode**.
+3. Select **Load unpacked**.
+4. Choose the repository directory.
+5. Pin the extension to your toolbar if desired.
 
-## Usage
+### 5. Verify the installation
 
-Once loaded the extension monitors every page automatically.
+Open the extension popup and check the model status. Once the model has loaded, open the dashboard to inspect activity and settings.
 
-- **Type** sensitive text into any input field — it will be blocked or warned immediately
-- **Paste** or **drag** sensitive content — blocked synchronously for regex hits; field is cleared for BERT-only hits after inference
-- **Submit a form** — all fields are checked before submission proceeds
+---
 
-Click the extension icon to open the popup. From there click **Open Full Dashboard** to see the full analytics view.
+## 🧭 Usage
 
-### Detection modes
+### Try a detection
 
-| Mode | Behaviour |
+1. Open a supported web page with an input field.
+2. Type or paste a test value.
+3. Observe the configured Block or Warn behavior.
+4. Open the extension popup to inspect recent events.
+5. Open the full dashboard to view event details and analytics.
+
+### Manual test examples
+
+Use synthetic values only.
+
+| Test input | Expected detector |
 |---|---|
-| **Block** (default) | Clears the field and shows a red toast |
-| **Warn** | Highlights the field amber and shows a warning toast |
-| **Off** | Disables all detection |
+| `test@example.com` | Email regex |
+| `AKIA1234567890ABCDEF` | AWS-style key regex |
+| `My SSN is 123-45-6789` | SSN / phrase patterns |
+| `sk-abcdefghijklmnopqrstuvwxyz123456` | Secret-key pattern |
 
-Switch modes from the popup, the sidebar quick toggle, or the Settings page.
+These are test examples, not proof that every format or credential type will be detected.
 
 ### Domain allowlist
 
-Add trusted domains (e.g. `localhost`, `internal.corp`) in Settings → Domain Allowlist. The extension stays silent on those domains.
+Add trusted domains in **Settings → Domain Allowlist**. The extension is configured to stay silent on those domains.
 
+Only allowlist domains you trust, since doing so intentionally reduces protection there.
 
-## Preview
+---
 
-Open `dashboard_preview.html` directly in Chrome to see a fully interactive dashboard UI with mock data — no extension installation needed.
+## 🧪 Testing & Evaluation
 
+The repository includes a manual test page and an automated test runner.
 
-## Testing
+### Manual testing
 
-**Manual** — open `test_page.html` in Chrome and type sensitive values:
-- `test@example.com` — email
-- `AKIA1234567890ABCDEF` — AWS key
-- `My SSN is 123-45-6789`
-- `sk-abcdefghijklmnopqrstuvwxyz123456` — secret key
+Open `test_page.html` in Chrome and exercise typing, paste, drag-and-drop, and form submission.
 
-**Automated** — runs all 200 labelled test cases through regex + BERT:
+### Automated tests
+
+Run from the project directory:
+
 ```bash
 node test_regex_detection.js
 ```
 
-The script prints a full accuracy report. Results reflect the same regex patterns and BERT logic used in the live extension.
+The test runner evaluates the regex and BERT detection logic against the 200 labelled cases in `test_questions.json`.
 
-If you see a model-not-found error, re-run:
+If the local model cannot be found, run:
+
 ```bash
 python download_model.py
 ```
 
+### What should be evaluated next?
 
-## Architecture
+For a security-focused ML project, useful evaluation measures include:
 
-```
-User types / pastes text
-        │
-        ▼
-  content.js  ──►  Regex check (26 patterns, instant)
-        │                │
-        │          Match found?  ──► block / warn
-        │
-        ▼  (if regex clean)
-  CustomEvent 'llm-pii-check'
-        │
-        ▼
-  page-injected-module.js  ──►  TinyBERT ONNX inference (offline, in page context)
-        │                        (onnx-community/TinyBERT-finetuned-NER-ONNX)
-  CustomEvent 'llm-pii-result'
-        │
-        ▼
-  content.js  ──►  block / warn  ──►  saveBlockedEvent → chrome.storage.local
-                                              │
-                                    ┌─────────┴──────────┐
-                              popup.js              dashboard.js
-                         (quick stats)        (full analytics UI)
-```
+- Precision and recall by sensitive-data category
+- False-positive and false-negative rates
+- Regex-only versus combined-pipeline performance
+- BERT inference latency and model initialization time
+- Behavior across different input types and supported websites
 
-**Why page-injected-module.js and not background.js for inference?**
-Chrome MV3 service workers cannot spawn `blob:` Web Workers, which ONNX Runtime WebAssembly requires for multi-threaded inference. The model therefore runs in the page's JS context where blob workers are fully supported. The background service worker only handles lifecycle events and model status storage.
+The presence of a test dataset does not itself establish a particular accuracy score. Publish measured results only after running the tests and recording the methodology.
 
+---
 
-## Bug fixes 
+## 🔐 Privacy by Design
 
-| Issue | Fix |
-|---|---|
-| `background.js` imported from CDN — forbidden in MV3 | Replaced with local `./libs/transformers.min.js` |
-| Service worker crashed on load | Removed all model loading from service worker |
-| Wrong entity tags (`PER`, `ORG`…) | Model uses `LABEL_0`–`LABEL_8`; detection logic updated |
-| Over-broad driver's license / passport regex | Patterns now require full label prefix |
-| API key patterns didn't match `"is"` keyword | Updated to accept `:`, `=`, or `is` |
-| Async `e.preventDefault()` too late for paste/drop | Regex hits cancel synchronously; BERT hits clear field after inference |
-| `env.cache = false` was a no-op | Replaced with `env.useBrowserCache = false` |
-| `libs/set-globals.js` was dead code | Deleted |
-| Popup inline `<script>` violated MV3 CSP | Extracted to `popup.js` |
-| ONNX model filename mismatch | Renamed on disk; `download_model.py` handles it automatically |
+Privacy is the core design goal of this project.
 
+- **Local inference:** text is processed using the local ONNX model.
+- **No hosted inference API:** the extension does not send text to an external inference service during normal operation.
+- **Local history:** event records are stored in `chrome.storage.local`.
+- **Bundled runtime:** model execution uses local JavaScript and WebAssembly assets.
+- **Setup-time download:** Hugging Face is contacted to download the model during setup.
 
-## Privacy
+### Important security boundaries
 
-- No external API calls during normal operation
-- No data uploaded anywhere — all inference runs locally via ONNX Runtime WebAssembly
-- Event history stored only in `chrome.storage.local` on your machine
-- The only external touch is the one-time model download from HuggingFace during setup
+This extension is a defensive prototype, not a guarantee against every form of data leakage.
+
+- Regex patterns can miss unfamiliar formats and may produce false positives.
+- General NER models do not reliably recognize all secrets or credentials.
+- Asynchronous model inference creates timing limitations for BERT-only detections.
+- Domain allowlisting disables protection on the allowed domains.
+- Browser extension behavior can vary by website and input mechanism.
+
+Avoid entering real credentials or personal information into test pages. Validate the extension on the specific websites and input flows you intend to protect.
+
+---
+
+## 🛠️ Engineering Lessons
+
+This project explores several practical engineering challenges:
+
+- Combining deterministic rules with local machine learning
+- Running ONNX inference inside a browser extension
+- Working within Chrome Manifest V3 execution constraints
+- Coordinating content scripts and page-context inference
+- Building a usable event history and analytics dashboard
+- Testing detection behavior against labelled examples
+- Balancing security, latency, and usability
+
+The goal is not simply to detect sensitive strings. It is to integrate detection into a browser workflow while keeping data local and behavior reviewable.
+
+---
+
+## 🗺️ Roadmap
+
+Potential next steps:
+
+- [ ] Measure precision, recall, and false-positive rates on labelled test data
+- [ ] Add category-specific evaluation reports
+- [ ] Investigate PII-specific fine-tuning of the NER model
+- [ ] Expand test coverage across websites and input mechanisms
+- [ ] Improve inference feedback and timing behavior
+- [ ] Add reproducible performance benchmarks
+- [ ] Document supported browser permissions and security boundaries
+
+These are future improvements, not claims about the current implementation.
+
+---
+
+## 🤝 Contributing
+
+Contributions and issue reports are welcome.
+
+Useful contributions include new synthetic detection test cases, reproducible bug reports, evaluation improvements, and browser compatibility fixes.
+
+When proposing detection changes, include the test inputs and expected outcomes. Never include real passwords, API keys, tokens, or personal information in issues or pull requests.
+
+---
+
+<div align="center">
+
+<img src="https://capsule-render.vercel.app/api?type=waving&height=120&color=0:064E3B,50:0B1F36,100:050816&section=footer" width="100%" alt="Footer"/>
+
+### Protect the prompt. Keep the data local.
+
+*LLM Data Leakage Monitor — Applied ML for privacy-conscious AI usage.*
+
+<a href="https://github.com/RevHeadGuy">
+<img src="https://img.shields.io/badge/BUILT%20WITH-PYTHON%20%7C%20JAVASCRIPT%20%7C%20ONNX-059669?style=for-the-badge" alt="Built with Python, JavaScript, and ONNX"/>
+</a>
+
+</div>
