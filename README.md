@@ -1,7 +1,7 @@
-# 🛡️ LLM Data Leakage Monitor
 
-<p align="center">
-  <strong>Privacy-First. AI-Powered. Entirely Local.</strong>
+<h1 align="center"> # 🛡️ LLM Data Leakage Monitor </h1>
+
+<strong>Privacy-First. AI-Powered. Entirely Local.</strong>
   <br/>
   A Chrome extension that detects and prevents accidental exposure of sensitive information before it reaches AI chat interfaces.
 </p>
