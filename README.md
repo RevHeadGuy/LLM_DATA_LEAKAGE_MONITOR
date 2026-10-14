@@ -209,29 +209,37 @@ python download_model.py
 
 ## Architecture
 
-```
-User types / pastes text
-        │
-        ▼
-  content.js  ──►  Regex check (26 patterns, instant)
-        │                │
-        │          Match found?  ──► block / warn
-        │
-        ▼  (if regex clean)
-  CustomEvent 'llm-pii-check'
-        │
-        ▼
-  page-injected-module.js  ──►  TinyBERT ONNX inference (offline, in page context)
-        │                        (onnx-community/TinyBERT-finetuned-NER-ONNX)
-  CustomEvent 'llm-pii-result'
-        │
-        ▼
-  content.js  ──►  block / warn  ──►  saveBlockedEvent → chrome.storage.local
-                                              │
-                                    ┌─────────┴──────────┐
-                              popup.js              dashboard.js
-                         (quick stats)        (full analytics UI)
-```
+flowchart TD
+    A["👤 User Types or Pastes Text"] --> B["content.js"]
+    
+    B --> C["⚡ Regex Detection<br/>26 Patterns · Instant"]
+    
+    C --> D{"Sensitive Data Found?"}
+    
+    D -- "Yes" --> E["🚫 Block / ⚠️ Warn"]
+    D -- "No" --> F["CustomEvent<br/>llm-pii-check"]
+    
+    F --> G["page-injected-module.js"]
+    G --> H["🧠 TinyBERT ONNX Inference<br/>Offline · Page Context"]
+    
+    H --> I["CustomEvent<br/>llm-pii-result"]
+    I --> J["content.js"]
+    
+    J --> K["🚫 Block / ⚠️ Warn"]
+    E --> L["saveBlockedEvent()"]
+    K --> L
+    
+    L --> M[("chrome.storage.local")]
+    
+    M --> N["popup.js<br/>Quick Statistics"]
+    M --> O["dashboard.js<br/>Full Analytics UI"]
+
+    style A fill:#e8f0fe,stroke:#4285f4,color:#202124
+    style C fill:#e6f4ea,stroke:#34a853,color:#202124
+    style H fill:#f3e8ff,stroke:#9333ea,color:#202124
+    style E fill:#fce8e6,stroke:#ea4335,color:#202124
+    style K fill:#fce8e6,stroke:#ea4335,color:#202124
+    style M fill:#fff4ce,stroke:#fbbc04,color:#202124
 
 **Why page-injected-module.js and not background.js for inference?**
 Chrome MV3 service workers cannot spawn `blob:` Web Workers, which ONNX Runtime WebAssembly requires for multi-threaded inference. The model therefore runs in the page's JS context where blob workers are fully supported. The background service worker only handles lifecycle events and model status storage.
