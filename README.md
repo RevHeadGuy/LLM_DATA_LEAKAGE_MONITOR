@@ -1,5 +1,5 @@
 
-<h1 align="center"> # 🛡️ LLM Data Leakage Monitor </h1>
+<h1 align="center"> 🛡️ LLM Data Leakage Monitor </h1>
 
 <strong>Privacy-First. AI-Powered. Entirely Local.</strong>
   <br/>
