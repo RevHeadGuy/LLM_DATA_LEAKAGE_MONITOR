@@ -95,6 +95,11 @@
     .mode-btn.active-block { background: rgba(239,68,68,0.15); border-color: var(--danger); color: var(--danger); }
     .mode-btn.active-warn  { background: rgba(245,158,11,0.15); border-color: var(--warn);   color: var(--warn); }
     .mode-btn.active-off   { background: rgba(136,146,176,0.1); border-color: var(--muted);  color: var(--muted); }
+    .scope-row {
+      display: flex; align-items: center; gap: 8px;
+      margin-top: 10px; font-size: 11px; color: var(--muted); cursor: pointer;
+    }
+    .scope-row input { accent-color: var(--accent); }
 
     /* ── Recent events mini-list ────────────────────────── */
     .events-list { display: flex; flex-direction: column; gap: 5px; }
@@ -159,6 +164,10 @@
     <button class="mode-btn" data-mode="warn"  id="modeWarn">⚠ Warn</button>
     <button class="mode-btn" data-mode="off"   id="modeOff">○ Off</button>
   </div>
+  <label class="scope-row" for="scopeLlmOnly">
+    <input type="checkbox" id="scopeLlmOnly" checked />
+    <span>LLM sites only</span>
+  </label>
 </div>
 
 <!-- Recent events -->
@@ -176,6 +185,7 @@
   </button>
 </div>
 
+<script src="detection-core.js"></script>
 <script src="popup.js"></script>
 </body>
 </html>

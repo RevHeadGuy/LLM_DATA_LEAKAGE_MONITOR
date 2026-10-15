@@ -1,5 +1,7 @@
 'use strict';
 
+const { mergeSettings } = window.LdlmDetection;
+
 // ─── Storage helpers ──────────────────────────────────────────────────────────
 function getStorage(keys) { return new Promise(r => chrome.storage.local.get(keys, r)); }
 function setStorage(obj)  { return new Promise(r => chrome.storage.local.set(obj, r)); }
@@ -52,9 +54,9 @@ const quickToggle = document.getElementById('quickToggle');
 })();
 quickToggle?.addEventListener('change', async () => {
   const { llmLeakageSettings } = await getStorage(['llmLeakageSettings']);
-  const current = llmLeakageSettings || { mode: 'block', allowlist: [] };
-  const newMode = quickToggle.checked ? 'block' : 'off';
-  await setStorage({ llmLeakageSettings: { ...current, mode: newMode } });
+  const current = mergeSettings(llmLeakageSettings);
+  const newMode = quickToggle.checked ? (current.mode === 'off' ? 'block' : current.mode) : 'off';
+  await setStorage({ llmLeakageSettings: mergeSettings({ ...current, mode: newMode }) });
 });
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
@@ -477,14 +479,31 @@ document.getElementById('exportBtn')?.addEventListener('click', async () => {
 async function loadSettings() {
   const { llmLeakageSettings, llmBlockedEvents, llmModelStatus } =
     await getStorage(['llmLeakageSettings','llmBlockedEvents','llmModelStatus']);
-  const settings = llmLeakageSettings || { mode:'block', allowlist:[] };
+  const settings = mergeSettings(llmLeakageSettings);
   const events   = Array.isArray(llmBlockedEvents) ? llmBlockedEvents : [];
 
   document.getElementById('modeSelect').value     = settings.mode || 'block';
+  const scopeSelect = document.getElementById('scopeSelect');
+  if (scopeSelect) scopeSelect.value = settings.scope || 'llm';
   document.getElementById('allowlistInput').value = (settings.allowlist||[]).join('\n');
+
+  const policyMap = {
+    policySecrets: 'secrets',
+    policyIdentity: 'identity',
+    policyTokens: 'tokens',
+    policyContact: 'contact',
+    policyPersonal: 'personal',
+    policyNer: 'ner'
+  };
+  Object.entries(policyMap).forEach(([id, group]) => {
+    const el = document.getElementById(id);
+    if (el) el.value = settings.categoryActions[group] || 'warn';
+  });
 
   const modeLabels = { block:'Block', warn:'Warn only', off:'Off' };
   document.getElementById('infoMode').textContent      = modeLabels[settings.mode]||settings.mode;
+  const infoScope = document.getElementById('infoScope');
+  if (infoScope) infoScope.textContent = settings.scope === 'all' ? 'All sites' : 'LLM sites only';
   document.getElementById('infoAllowlist').textContent = (settings.allowlist||[]).length || 'None';
   document.getElementById('infoEvents').textContent    = events.length;
 
@@ -498,20 +517,36 @@ async function loadSettings() {
 
 document.getElementById('saveSettingsBtn')?.addEventListener('click', async () => {
   const mode = document.getElementById('modeSelect').value;
+  const scope = document.getElementById('scopeSelect')?.value || 'llm';
   const { llmLeakageSettings } = await getStorage(['llmLeakageSettings']);
-  await setStorage({ llmLeakageSettings: { ...(llmLeakageSettings||{}), mode } });
+  await setStorage({ llmLeakageSettings: mergeSettings({ ...(llmLeakageSettings||{}), mode, scope }) });
   const s = document.getElementById('saveStatus');
   s.classList.add('show'); setTimeout(()=>s.classList.remove('show'),2000);
   loadSettings();
-  // sync quick toggle
   if (quickToggle) quickToggle.checked = mode !== 'off';
+});
+
+document.getElementById('savePolicyBtn')?.addEventListener('click', async () => {
+  const { llmLeakageSettings } = await getStorage(['llmLeakageSettings']);
+  const categoryActions = {
+    secrets: document.getElementById('policySecrets').value,
+    identity: document.getElementById('policyIdentity').value,
+    tokens: document.getElementById('policyTokens').value,
+    contact: document.getElementById('policyContact').value,
+    personal: document.getElementById('policyPersonal').value,
+    ner: document.getElementById('policyNer').value
+  };
+  await setStorage({ llmLeakageSettings: mergeSettings({ ...(llmLeakageSettings||{}), categoryActions }) });
+  const s = document.getElementById('savePolicyStatus');
+  s.classList.add('show'); setTimeout(()=>s.classList.remove('show'),2000);
+  loadSettings();
 });
 
 document.getElementById('saveAllowlistBtn')?.addEventListener('click', async () => {
   const raw = document.getElementById('allowlistInput').value || '';
   const allowlist = raw.split(/[\n,]+/).map(s=>s.trim().toLowerCase()).filter(Boolean);
   const { llmLeakageSettings } = await getStorage(['llmLeakageSettings']);
-  await setStorage({ llmLeakageSettings: { ...(llmLeakageSettings||{}), allowlist } });
+  await setStorage({ llmLeakageSettings: mergeSettings({ ...(llmLeakageSettings||{}), allowlist }) });
   const s = document.getElementById('saveAllowlistStatus');
   s.classList.add('show'); setTimeout(()=>s.classList.remove('show'),2000);
   loadSettings();

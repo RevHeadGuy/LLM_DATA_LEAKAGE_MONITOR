@@ -22,6 +22,7 @@
 
 import { pipeline, env } from './transformers.min.js';
 
+
 function getInjectedScriptTag() {
   const scripts = [...document.querySelectorAll('script[type="module"]')];
   return scripts.reverse().find(
@@ -60,32 +61,27 @@ function getInjectedScriptTag() {
   }
 
   let lastText = '';
-  let lastResult = false;
+  let lastResult = [];
 
   window.addEventListener('llm-pii-check', async (event) => {
     const { id, text } = event.detail;
     
-    // Avoid re-processing if text hasn't changed significantly
     if (text === lastText) {
-      window.dispatchEvent(new CustomEvent('llm-pii-result', { detail: { id, hasPII: lastResult } }));
+      window.dispatchEvent(new CustomEvent('llm-pii-result', { detail: { id, entities: lastResult } }));
       return;
     }
 
     try {
       const result = await ner(text, { aggregation_strategy: 'simple' });
-      console.log('Full NER result:', result);
+      const entities = Array.isArray(result) ? result : [];
 
-      // Treat any entity label except 'LABEL_0' with score > 0.5 as PII
-      const hasPII = result.some(ent => ent.entity !== 'LABEL_0' && ent.score > 0.5);
-      
       lastText = text;
-      lastResult = hasPII;
+      lastResult = entities;
 
-      window.dispatchEvent(new CustomEvent('llm-pii-result', { detail: { id, hasPII } }));
+      window.dispatchEvent(new CustomEvent('llm-pii-result', { detail: { id, entities } }));
     } catch (e) {
       console.error('NER error:', e);
-      // Fallback to previous result on error to avoid flickering
-      window.dispatchEvent(new CustomEvent('llm-pii-result', { detail: { id, hasPII: lastResult } }));
+      window.dispatchEvent(new CustomEvent('llm-pii-result', { detail: { id, entities: lastResult } }));
     }
   });
 })();

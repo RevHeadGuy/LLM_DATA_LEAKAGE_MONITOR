@@ -8,13 +8,13 @@
 // All NER/BERT inference runs in page-injected-module.js (page context).
 // content.js relays the model status here via chrome.runtime.sendMessage.
 
+importScripts('detection-core.js');
+
 chrome.runtime.onInstalled.addListener(() => {
   chrome.storage.local.get(['llmLeakageSettings'], (result) => {
-    if (!result.llmLeakageSettings) {
-      chrome.storage.local.set({
-        llmLeakageSettings: { mode: 'block', allowlist: [] }
-      });
-    }
+    chrome.storage.local.set({
+      llmLeakageSettings: self.LdlmDetection.mergeSettings(result.llmLeakageSettings)
+    });
   });
   // Reset model status on install/update so the badge reflects reality
   chrome.storage.local.set({ llmModelStatus: 'loading' });

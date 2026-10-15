@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html data-ldlm-adapter="chatgpt">
 <head>
     <title>LLM Data Leakage Monitor Test Page</title>
     <style>
@@ -27,6 +27,22 @@
     <p>Type sensitive data below to test the extension's detection capabilities.</p>
     <textarea id="testInput" placeholder="Enter text here..."></textarea>
     <div id="status"></div>
+
+    <h2>ChatGPT send-intercept mock</h2>
+    <p>With the extension loaded, paste a secret here and press Enter or Send. Regex hits should be blocked immediately.</p>
+    <div id="prompt-textarea" class="ProseMirror" contenteditable="true" style="border:1px solid #ccc; min-height:80px; padding:10px; width:80%;"></div>
+    <p>
+      <button id="composer-submit-button" data-testid="send-button" aria-label="Send message" type="button">Send</button>
+    </p>
+    <p id="mockSendLog" style="color:#666;"></p>
+    <script>
+      document.getElementById('composer-submit-button').addEventListener('click', () => {
+        const text = document.getElementById('prompt-textarea').innerText.trim();
+        document.getElementById('mockSendLog').textContent = text
+          ? 'Send went through: ' + text.slice(0, 80)
+          : 'Send clicked with empty composer';
+      });
+    </script>
 
     <script type="module" src="libs/transformers.min.js"></script>
     <script type="module">

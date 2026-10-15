@@ -740,8 +740,69 @@
               <option value="off">○  Off — disable all detection</option>
             </select>
           </div>
+          <div class="form-group">
+            <label for="scopeSelect">Coverage</label>
+            <select id="scopeSelect">
+              <option value="llm">LLM sites only — ChatGPT, Claude, Gemini, Copilot, and similar</option>
+              <option value="all">All sites — monitor every page</option>
+            </select>
+            <div class="form-hint">BERT is loaded only on in-scope pages. Secrets still block; names and emails warn by default.</div>
+          </div>
           <button class="save-btn" id="saveSettingsBtn">Save Settings</button>
           <span class="save-status" id="saveStatus">Saved ✓</span>
+        </div>
+        <div class="s-card">
+          <h3>🎯 Category Policy</h3>
+          <div class="form-group">
+            <label for="policySecrets">Secrets (API keys, JWTs, passwords, PEM, DB URLs)</label>
+            <select id="policySecrets">
+              <option value="block">Block</option>
+              <option value="warn">Warn</option>
+              <option value="ignore">Ignore</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="policyIdentity">Identity (SSN, cards, passport, medical IDs)</label>
+            <select id="policyIdentity">
+              <option value="block">Block</option>
+              <option value="warn">Warn</option>
+              <option value="ignore">Ignore</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="policyTokens">Hashes / generic tokens</label>
+            <select id="policyTokens">
+              <option value="block">Block</option>
+              <option value="warn">Warn</option>
+              <option value="ignore">Ignore</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="policyContact">Contact (email, phone)</label>
+            <select id="policyContact">
+              <option value="block">Block</option>
+              <option value="warn">Warn</option>
+              <option value="ignore">Ignore</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="policyPersonal">Personal (name, address phrases)</label>
+            <select id="policyPersonal">
+              <option value="block">Block</option>
+              <option value="warn">Warn</option>
+              <option value="ignore">Ignore</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="policyNer">NER entities (person / org / location with disclosure)</label>
+            <select id="policyNer">
+              <option value="block">Block</option>
+              <option value="warn">Warn</option>
+              <option value="ignore">Ignore</option>
+            </select>
+          </div>
+          <button class="save-btn" id="savePolicyBtn">Save Policy</button>
+          <span class="save-status" id="savePolicyStatus">Saved ✓</span>
         </div>
         <div class="s-card">
           <h3>🌐 Domain Allowlist</h3>
@@ -756,6 +817,7 @@
         <div class="s-card">
           <h3>📊 Status</h3>
           <div class="info-row"><span class="info-key">Detection mode</span><span class="info-val" id="infoMode">—</span></div>
+          <div class="info-row"><span class="info-key">Coverage</span><span class="info-val" id="infoScope">—</span></div>
           <div class="info-row"><span class="info-key">BERT model</span><span class="info-val" id="infoBert">—</span></div>
           <div class="info-row"><span class="info-key">Allowlisted domains</span><span class="info-val" id="infoAllowlist">—</span></div>
           <div class="info-row"><span class="info-key">Events stored</span><span class="info-val" id="infoEvents">—</span></div>
@@ -770,7 +832,7 @@
         <div class="s-card">
           <h3>🏗️ Architecture</h3>
           <div class="info-row"><span class="info-key">Extension type</span><span class="info-val">Chrome MV3</span></div>
-          <div class="info-row"><span class="info-key">Version</span><span class="info-val">1.6</span></div>
+          <div class="info-row"><span class="info-key">Version</span><span class="info-val">1.8</span></div>
           <div class="info-row"><span class="info-key">Remote requests</span><span class="info-val good">None — 100% local</span></div>
           <div class="info-row"><span class="info-key">NER model</span><span class="info-val">TinyBERT NER (ONNX, quantized)</span></div>
           <div class="info-row"><span class="info-key">Inference runtime</span><span class="info-val">ONNX Runtime WebAssembly</span></div>
@@ -789,6 +851,7 @@
   </main>
 </div>
 
+<script src="detection-core.js"></script>
 <script src="dashboard.js"></script>
 </body>
 </html>

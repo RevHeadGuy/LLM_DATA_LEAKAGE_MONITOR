@@ -1,4 +1,10 @@
 {
+  "name": "llm-data-leakage-monitor",
+  "private": true,
+  "scripts": {
+    "test": "node test_detection_core.js",
+    "test:dataset": "node test_regex_detection.js"
+  },
   "dependencies": {
     "@xenova/transformers": "^2.10.0",
     "onnxruntime-web": "^1.14.0"
