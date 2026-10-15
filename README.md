@@ -107,7 +107,7 @@ On ChatGPT and Claude, Enter and the Send button are intercepted in the capture 
 
 1. **Scope:** By default, detection runs on LLM chat sites (ChatGPT, Claude, Gemini, Copilot, and similar). All-sites mode is optional.
 2. **Monitor:** The content script observes supported text-entry elements and send actions.
-3. **Inspect:** Input is checked against 26 regex patterns in `detection-core.js`.
+3. **Inspect:** Input is checked against 24 regex patterns in `detection-core.js`; category mapping is maintained separately.
 4. **Policy:** Each matched category maps to block, warn, or ignore. Secrets and identity default to block; email, names, and generic hashes default to warn.
 5. **Escalate:** If regex does not match and the text contains a disclosure cue, it is passed to local NER.
 6. **Evaluate:** NER uses `entity_group` or `entity`, ignores `LABEL_0` / `O`, requires score `> 0.75`, and still requires disclosure context.
@@ -133,7 +133,7 @@ The inference module uses locally bundled JavaScript and WebAssembly assets.
 | Decision threshold | Score `> 0.75` after aggregation |
 | Model format | Quantized ONNX |
 | Runtime | ONNX Runtime WebAssembly |
-| Approximate model size | 36 MB |
+| Approximate model size | 14.5 MB (checked-in `model_quantized.onnx` file) |
 | Fine-tuning in this project | None |
 | Inference location | Browser, using local model assets |
 | External inference APIs | None |
@@ -158,7 +158,7 @@ Potential improvements include:
 
 ### Layer 1 — Regex Detection
 
-The extension implements **26 regex patterns spanning 15+ sensitive-data categories**.
+The extension implements **24 regex scan patterns** in `detection-core.js`. A separate category map associates matches with policy labels; some patterns overlap, and the exact categories depend on the matched content.
 
 | Category | Examples |
 |---|---|
@@ -325,9 +325,8 @@ llm-data-leakage-monitor/
 ### Prerequisites
 
 - Google Chrome or another compatible Chromium-based browser.
-- Node.js and npm.
-- Python 3 and pip.
-- Internet access for the initial model download.
+- Node.js and npm only if you want to run the automated tests.
+- Python 3, `pip`, and internet access only if you need to download or refresh the model assets.
 
 ### 1. Clone the repository
 
@@ -340,25 +339,27 @@ Replace `<YOUR_REPOSITORY_URL>` with your repository URL.
 
 Alternatively, download the repository and extract it locally.
 
-### 2. Install JavaScript dependencies
+### 2. Install JavaScript dependencies (for tests)
 
 ```bash
 npm install
 ```
 
-### 3. Install the model downloader dependency
+The extension itself does not need `npm install`; its browser runtime assets are bundled in the repository. The npm dependencies support the Node-based test scripts.
+
+### 3. Install the model downloader dependency (only if needed)
 
 ```bash
 python -m pip install huggingface_hub
 ```
 
-### 4. Download the ONNX model
+### 4. Download the ONNX model (only if missing or refreshing)
 
 ```bash
 python download_model.py
 ```
 
-The script downloads the quantized model from Hugging Face and places it under:
+The checked-in repository already includes the model and tokenizer assets. Run this only if the model file is missing or you want to refresh the assets. The script downloads the quantized model from Hugging Face and places it under:
 
 ```text
 web_model/bert-tiny-ner/onnx/model_quantized.onnx
