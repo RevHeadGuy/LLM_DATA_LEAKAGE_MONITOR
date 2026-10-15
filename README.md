@@ -149,7 +149,3 @@ NER labels are mapped from the model output (`LABEL_0` through `LABEL_8`) to out
 ## Technology
 
 JavaScript · Chrome Extensions API · Manifest V3 · Regex · TinyBERT · ONNX · WebAssembly · Transformers.js · HTML/CSS · Canvas · Node.js · Python
-
-## Author
-
-**Vedant Atri** · B.Tech, Machine Learning, NLP, and AI Security
