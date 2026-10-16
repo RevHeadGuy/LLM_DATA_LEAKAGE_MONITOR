@@ -92,13 +92,13 @@ npm install
 npm test
 ```
 
-`npm test` runs checks for regex/policy helpers, NER decision logic, and site adapters. To run the 200-case combined regex + NER dataset (which loads the local ONNX model):
+`npm test` runs checks for regex/policy helpers, NER decision logic, and site adapters. To run the 2,000-case combined regex + NER dataset (which loads the local ONNX model):
 
 ```bash
 npm run test:dataset
 ```
 
-The dataset contains 200 examples with 100 expected positives and 100 expected negatives. It is a project test set, not an independent benchmark; its results should not be treated as a measure of production accuracy.
+The dataset contains 2,000 synthetic examples: 1,000 expected positives and 1,000 expected negatives, including malformed near-matches. It is a project test set, not an independent benchmark; its results should not be treated as a measure of production accuracy.
 
 For manual checks, load the extension and open `test_page.html`. To test a local file page, enable **Allow access to file URLs** for the extension. Use synthetic data only.
 
@@ -118,7 +118,7 @@ For manual checks, load the extension and open `test_page.html`. To test a local
 | `dashboard.html`, `dashboard.js` | Analytics, event history, settings, and CSV export |
 | `dashboard_preview.html` | Standalone dashboard preview using mock data |
 | `test_detection_core.js` | Unit checks for shared helpers and adapters |
-| `test_regex_detection.js`, `test_questions.json` | Combined detection runner and its 200-case dataset |
+| `test_regex_detection.js`, `test_questions.json` | Combined detection runner and its 2,000-case dataset |
 | `test_page.html` | Manual detection and send-interception test page |
 | `download_model.py` | Optional model downloader |
 
