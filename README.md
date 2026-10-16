@@ -88,19 +88,20 @@ The dataset test currently uses 2,000 synthetic examples (1,000 expected-positiv
 Project structure
 
 Names can vary slightly by branch; the main documented components include:
-Component	Responsibility
-manifest.json	Extension manifest and permissions
-content.js	Input monitoring, detection coordination, and enforcement
-detection-core.js	Regex and shared detection logic
-site-adapters.js	Site-specific input/send handling
-background.js	Extension-wide message and state handling
-libs/page-injected-module.js	Local ONNX model inference bridge
-web_model/bert-tiny-ner/	Local NER model assets
-popup.html and related scripts	Quick status and controls
-Dashboard files	Event history, analytics, settings, and CSV export
-test_detection_core.js / test_regex_detection.js	Detection tests
-test_questions.json	Synthetic dataset used by the dataset test
-download_model.py	Optional model setup/download helper
+| Component | Responsibility |
+|---|---|
+| `manifest.json` | Extension manifest and permissions |
+| `content.js` | Input monitoring, detection coordination, and enforcement |
+| `detection-core.js` | Regex and shared detection logic |
+| `site-adapters.js` | Site-specific input/send handling |
+| `background.js` | Extension-wide message and state handling |
+| `libs/page-injected-module.js` | Local ONNX model inference bridge |
+| `web_model/bert-tiny-ner/` | Local NER model assets |
+| `popup.html` and related scripts | Quick status and controls |
+| Dashboard files | Event history, analytics, settings, and CSV export |
+| `test_detection_core.js` / `test_regex_detection.js` | Detection tests |
+| `test_questions.json` | Synthetic dataset used by the dataset test |
+| `download_model.py` | Optional model setup/download helper |
 
 
 Check the current repository tree for the exact filenames present in your branch.
