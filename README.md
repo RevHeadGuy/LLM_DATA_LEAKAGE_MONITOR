@@ -13,7 +13,7 @@ At a glance
 - Storage: Local extension storage for event history and settings
 - UI: Popup for quick status and dashboard for history, analytics, and CSV export
   
-How it works
+## How it works
 
 ```mermaid
 flowchart TD
@@ -32,17 +32,17 @@ flowchart TD
     J --> K[Popup and dashboard]
 ```
 
-Layer 1 — Regex checks
+## Layer 1 — Regex checks
 
 The first layer checks recognizable patterns such as email addresses, phone numbers, Social Security numbers, payment-card-like numbers, API keys, JWTs, private-key headers, connection strings, and credential phrases. Pattern matches are fast and deterministic, but a match does not prove that a value is a real or active credential.
 The architecture diagram currently documents 24 regex patterns across 15+ categories. Keep that count synchronized with the actual implementation if the pattern set changes.
 
-Layer 2 — Local TinyBERT NER
+## Layer 2 — Local TinyBERT NER
 
 If the regex layer does not match and the text meets the supported disclosure-context conditions, the extension can run a local TinyBERT named-entity-recognition model through ONNX Runtime WebAssembly. It can identify entity types such as people, organizations, and locations. NER is not a dedicated secret detector, so it may miss secrets and may flag ordinary text.
 The current documented confidence threshold is greater than 0.75, alongside disclosure-context checks. This threshold is a decision setting, not a guarantee of accuracy.
 
-Actions and policy
+## Actions and policy
 
 The extension supports Block, Warn, and Off behavior, with category-level policies.
 - Block: Attempts to prevent submission and may clear the relevant input, depending on the site adapter and input path.
@@ -54,7 +54,7 @@ Site coverage and input handling
 The extension is intended for supported AI chat websites, including ChatGPT, Claude, Gemini, Copilot, Grok, Perplexity, Poe, You.com, Phind, Character.AI, DeepSeek, Mistral, and Meta AI. The exact behavior varies by site: ChatGPT and Claude have dedicated site adapters; other sites may receive general input monitoring rather than full send-interception support.
 Supported input paths can include typing, paste, drag-and-drop, form submission, and site-specific send actions. Coverage depends on the page structure and adapter implementation. LLM-site-only monitoring is the default; optional all-sites monitoring may be available in settings.
 
-Local storage and privacy
+## Local storage and privacy
 
 - Detection and model inference are designed to run in the browser without a remote inference service during normal operation.
 - The extension uses Chrome extension APIs such as chrome.storage.local and chrome.runtime for local event history, settings, and message passing.
@@ -63,7 +63,7 @@ Local storage and privacy
 - Avoid logging raw prompt contents unless the implementation and user-facing privacy notice explicitly justify it. Verify the current event schema before making stronger claims about exactly which fields are stored.
 - A one-time setup/download script may need internet access to fetch the model. Normal offline inference depends on the model assets being present locally.
 
-Model setup
+## Model setup
 
 The project documents a pre-trained TinyBERT NER ONNX model sourced from onnx-community/TinyBERT-finetuned-NER-ONNX. The model is used as supplied; this repository documentation does not claim that the model was trained from scratch for this project.
 If the model assets are not included in your checkout, use the repository's model setup script (for example, download_model.py) and follow its instructions. The architecture image describes the quantized model as approximately 14.5 MB; verify the actual tracked file name and size against the model path loaded by libs/page-injected-module.js before publishing a release.
@@ -139,7 +139,7 @@ In the latest recorded run, the test reported 2,000 correct classifications and 
 **Important:** Do not use real passwords, active API keys, or confidential personal information for testing. Website changes, unsupported editors, and input paths can affect detection coverage.
 
 
-Project structure
+## Project structure
 
 Names can vary slightly by branch; the main documented components include:
 | Component | Responsibility |
@@ -160,7 +160,7 @@ Names can vary slightly by branch; the main documented components include:
 
 Check the current repository tree for the exact filenames present in your branch.
 
-Limitations
+## Limitations
 
 - Regex checks only detect patterns represented by their rules and can produce false positives or miss variants.
 - NER detects named entities, not every kind of confidential information.
@@ -169,7 +169,7 @@ Limitations
 - The extension is a best-effort client-side aid, not a substitute for security review, data-loss-prevention controls, or careful handling of confidential information.
 
   
-Technology
+## Technology
 
 - JavaScript and Chrome Extensions Manifest V3
 - Regular expressions and site-specific content scripts
@@ -177,6 +177,6 @@ Technology
 - Chrome extension storage and runtime messaging
 - HTML/CSS/JavaScript dashboard and test scripts
 
-Responsible use
+## Responsible use
 
 Use synthetic test data while developing. Do not rely on this extension as the only safeguard for confidential data, and do not interpret a successful test run as proof that all leakage paths are blocked.
