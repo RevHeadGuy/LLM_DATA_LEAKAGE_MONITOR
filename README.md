@@ -68,22 +68,76 @@ Model setup
 The project documents a pre-trained TinyBERT NER ONNX model sourced from onnx-community/TinyBERT-finetuned-NER-ONNX. The model is used as supplied; this repository documentation does not claim that the model was trained from scratch for this project.
 If the model assets are not included in your checkout, use the repository's model setup script (for example, download_model.py) and follow its instructions. The architecture image describes the quantized model as approximately 14.5 MB; verify the actual tracked file name and size against the model path loaded by libs/page-injected-module.js before publishing a release.
 
-Installation
+## Install the extension
+
+The extension is designed to run locally in Chrome using the bundled JavaScript runtime, tokenizer, TinyBERT ONNX model, and WebAssembly assets. **Node.js and Python are not required to install or use the extension** when the required assets are already present.
+
 1. Clone or download this repository.
-2. Ensure the required local model assets are present, using the provided setup script if necessary.
-3. Open chrome://extensions in Chrome.
-4. Enable Developer mode.
-5. Select Load unpacked and choose the extension project folder.
-6. Open a supported AI chat site and test with safe, synthetic examples.
-Do not test by pasting real passwords, live API keys, or other active secrets into a chat interface.
+2. Open `chrome://extensions` in Chrome or a compatible Chromium browser.
+3. Enable **Developer mode**.
+4. Click **Load unpacked** and select the project directory containing `manifest.json`.
+5. Open the extension popup and visit a supported AI chat website. When protection is enabled and the page is in scope, the extension monitors supported input paths and applies its detection pipeline.
+6. Open the dashboard from the popup to review settings, event history, and available analytics.
 
-Development and tests
+### Supported websites
 
-Install the project dependencies from the repository root:
+The extension is designed to support AI chat websites such as ChatGPT, Claude, Gemini, Copilot, Grok, Perplexity, Poe, You.com, Phind, Character.AI, DeepSeek, Mistral, and Meta AI. The level of input monitoring and submission interception depends on the website adapter and page structure.
+
+LLM-site-only monitoring is enabled by default. Optional all-sites monitoring can be configured through the extension settings.
+
+### Optional: Download or refresh model files
+
+The model assets are intended to be included in the repository. You normally do not need to download them separately.
+
+To restore or refresh the model files, install the downloader dependency and run the provided script from the project root:
+
+```bash
+python -m pip install huggingface_hub
+python download_model.py
+```
+
+The script downloads the model assets from Hugging Face into `web_model/bert-tiny-ner/`. This setup step requires an internet connection. Normal inference is designed to use the local model rather than a remote inference API.
+
+## Run the tests
+
+Node.js and npm are required only for the automated test scripts. Run the following commands from the project root.
+
+### 1. Install dependencies
+
+```bash
 npm install
+```
+
+### 2. Run unit tests
+
+```bash
 npm test
+```
+
+This runs the project's automated checks for detection-core behavior, regex and policy helpers, NER decision logic, and site adapters.
+
+### 3. Run the combined detection dataset test
+
+```bash
 npm run test:dataset
-The dataset test currently uses 2,000 synthetic examples (1,000 expected-positive and 1,000 expected-negative examples). A reported 100% result on this synthetic set means the current test cases passed; it is not an independent benchmark and should not be presented as production accuracy or proof of complete protection.
+```
+
+The dataset test evaluates the combined regex and TinyBERT NER detection pipeline using **2,000 synthetic examples**:
+
+- **1,000 expected-positive examples** containing patterns that should be detected.
+- **1,000 expected-negative examples** that should not be detected.
+
+In the latest recorded run, the test reported 2,000 correct classifications and 0 incorrect classifications on this dataset. These results describe performance on the project's synthetic test cases only; they are not an independent benchmark or a guarantee of production accuracy.
+
+### 4. Perform manual testing
+
+1. Load the extension through `chrome://extensions`.
+2. Open `test_page.html` to test the supported detection behavior.
+3. If testing a local file, enable **Allow access to file URLs** in the extension details.
+4. Test regex matches, warning and blocking policies, and supported input paths using synthetic examples.
+
+**Important:** Do not use real passwords, active API keys, or confidential personal information for testing. Website changes, unsupported editors, and input paths can affect detection coverage.
+
 
 Project structure
 
