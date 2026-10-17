@@ -72,7 +72,26 @@ document.querySelectorAll('.mode-btn').forEach(btn => {
 });
 
 document.getElementById('scopeLlmOnly')?.addEventListener('change', (e) => {
-  savePatch({ scope: e.target.checked ? 'llm' : 'all' });
+  const checkbox = e.target;
+  const wantAllSites = !checkbox.checked;
+
+  if (wantAllSites) {
+    // "All sites" needs the broad host permission. The checkbox click is a
+    // user gesture, so we can request it here. If the user declines, revert.
+    chrome.permissions.request({ origins: ['<all_urls>'] }, (granted) => {
+      if (!granted) {
+        checkbox.checked = true;
+        return;
+      }
+      savePatch({ scope: 'all' });
+    });
+    return;
+  }
+
+  // Back to LLM-only: drop the broad permission we no longer need.
+  savePatch({ scope: 'llm' }, () => {
+    chrome.permissions.remove({ origins: ['<all_urls>'] }, loadAll);
+  });
 });
 
 document.getElementById('openDashboard').addEventListener('click', () => {

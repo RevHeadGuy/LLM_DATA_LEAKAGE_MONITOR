@@ -4,7 +4,27 @@
   "version": "1.8",
   "description": "Detects and blocks sensitive data using regex and offline BERT-tiny NER model with page context injection.",
   "permissions": ["scripting", "activeTab", "storage", "tabs"],
-  "host_permissions": ["<all_urls>"],
+  "host_permissions": [
+    "https://chatgpt.com/*",
+    "https://chat.openai.com/*",
+    "https://claude.ai/*",
+    "https://gemini.google.com/*",
+    "https://bard.google.com/*",
+    "https://copilot.microsoft.com/*",
+    "https://copilot.cloud.microsoft/*",
+    "https://grok.com/*",
+    "https://grok.x.ai/*",
+    "https://*.perplexity.ai/*",
+    "https://poe.com/*",
+    "https://you.com/*",
+    "https://*.phind.com/*",
+    "https://character.ai/*",
+    "https://*.character.ai/*",
+    "https://chat.deepseek.com/*",
+    "https://chat.mistral.ai/*",
+    "https://meta.ai/*"
+  ],
+  "optional_host_permissions": ["<all_urls>"],
   "action": {
     "default_popup": "popup.html",
     "default_title": "LLM Data Leakage Monitor"
@@ -14,7 +34,26 @@
   },
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
+      "matches": [
+        "https://chatgpt.com/*",
+        "https://chat.openai.com/*",
+        "https://claude.ai/*",
+        "https://gemini.google.com/*",
+        "https://bard.google.com/*",
+        "https://copilot.microsoft.com/*",
+        "https://copilot.cloud.microsoft/*",
+        "https://grok.com/*",
+        "https://grok.x.ai/*",
+        "https://*.perplexity.ai/*",
+        "https://poe.com/*",
+        "https://you.com/*",
+        "https://*.phind.com/*",
+        "https://character.ai/*",
+        "https://*.character.ai/*",
+        "https://chat.deepseek.com/*",
+        "https://chat.mistral.ai/*",
+        "https://meta.ai/*"
+      ],
       "js": ["detection-core.js", "site-adapters.js", "content.js"],
       "run_at": "document_start"
     }
@@ -25,10 +64,7 @@
         "web_model/**",
         "wasm/*.wasm",
         "libs/transformers.min.js",
-        "libs/page-injected-module.js",
-        "dashboard.html",
-        "dashboard.js",
-        "popup.js"
+        "libs/page-injected-module.js"
       ],
       "matches": ["<all_urls>"]
     }

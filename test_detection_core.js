@@ -4,6 +4,8 @@ const assert = require('assert');
 const {
   containsSensitiveRegex,
   detectCategory,
+  detectGenericHash,
+  looksLikeSecretToken,
   nerIndicatesPii,
   MIN_INPUT_LENGTH,
   evaluateRegex,
@@ -20,6 +22,26 @@ assert.strictEqual(containsSensitiveRegex('test@example.com'), true);
 assert.strictEqual(containsSensitiveRegex('AKIA1234567890ABCDEF'), true);
 assert.strictEqual(detectCategory('AKIA1234567890ABCDEF'), 'AWS Key');
 assert.strictEqual(detectCategory('test@example.com'), 'Email');
+
+// ── Generic hash/token false-positive reduction ──────────────────────────────
+// Git SHA-1 (40 hex, lowercase) must NOT trip the generic hash rule on its own.
+assert.strictEqual(detectGenericHash('commit 9f86d081884c7d659a2feaa0c55ad015a3bf4f1b'), false);
+// MD5 (32 hex) and SHA-256 (64 hex) checksums alone are not secrets.
+assert.strictEqual(detectGenericHash('d41d8cd98f00b204e9800998ecf8427e'), false);
+assert.strictEqual(detectGenericHash('e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'), false);
+// A lowercase-only opaque token with no secret cue should be ignored.
+assert.strictEqual(detectGenericHash('abcdefabcdefabcdefabcdefabcdefab'), false);
+// But a secret keyword nearby flips a bare hex token into a real detection.
+assert.strictEqual(detectGenericHash('api_key d41d8cd98f00b204e9800998ecf8427e'), true);
+assert.strictEqual(detectGenericHash('session token: 9f86d081884c7d659a2feaa0c55ad015a3bf4f1b'), true);
+// High-entropy mixed-case+digit token looks like a real credential.
+assert.strictEqual(detectGenericHash('xR7mK9pL2qN4sT6vW8yA1bC3dE5fG7hJ'), true);
+// detectCategory should label a keyworded opaque token as Hash / Token.
+assert.strictEqual(detectCategory('secret: xR7mK9pL2qN4sT6vW8yA1bC3dE5fG7hJ'), 'Hash / Token');
+// looksLikeSecretToken direct checks.
+assert.strictEqual(looksLikeSecretToken('9f86d081884c7d659a2feaa0c55ad015a3bf4f1b'), false);
+assert.strictEqual(looksLikeSecretToken('xR7mK9pL2qN4sT6vW8yA1bC3dE5fG7hJ'), true);
+assert.strictEqual(looksLikeSecretToken('d41d8cd98f00b204e9800998ecf8427e', 'my api_key is here'), true);
 
 assert.strictEqual(nerIndicatesPii([{ entity_group: 'LABEL_3', score: 0.91 }]), true);
 assert.strictEqual(nerIndicatesPii([{ entity: 'LABEL_0', score: 0.99 }]), false);

@@ -6,6 +6,18 @@ const { mergeSettings } = window.LdlmDetection;
 function getStorage(keys) { return new Promise(r => chrome.storage.local.get(keys, r)); }
 function setStorage(obj)  { return new Promise(r => chrome.storage.local.set(obj, r)); }
 
+// Escape stored values before interpolating them into innerHTML. Event fields
+// (domain, category, source) are controlled, but this is defense-in-depth so a
+// crafted hostname in storage can never inject markup.
+function esc(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 // ─── Navigation ───────────────────────────────────────────────────────────────
 const navButtons = document.querySelectorAll('nav button[data-page]');
 const pages      = document.querySelectorAll('.page');
@@ -38,7 +50,7 @@ async function refreshModelBadge() {
     infoBert.textContent = state === 'ready' ? 'Loaded \u2713' : state === 'error' ? 'Failed \u2717' : 'Loading\u2026';
   }
 }
-let modelPollTimer = setInterval(async () => {
+const modelPollTimer = setInterval(async () => {
   const { llmModelStatus } = await getStorage(['llmModelStatus']);
   if (llmModelStatus === 'ready' || llmModelStatus === 'error') clearInterval(modelPollTimer);
   refreshModelBadge();
@@ -138,7 +150,6 @@ async function renderStats() {
   const now    = Date.now();
   const hour   = 3600000;
   const day    = 86400000;
-  const week   = 7 * day;
 
   const blocked = events.filter(e => e.action === 'Blocked');
   const warned  = events.filter(e => e.action === 'Warning');
@@ -293,7 +304,7 @@ async function renderCategoryChart() {
   const max = sorted[0][1];
   el.innerHTML = sorted.map(([label,count]) =>
     `<div class="bar-row">
-      <span class="bar-label" title="${label}">${label}</span>
+      <span class="bar-label" title="${esc(label)}">${esc(label)}</span>
       <div class="bar-track"><div class="bar-fill" style="width:${(count/max*100).toFixed(1)}%"></div></div>
       <span class="bar-n">${count}</span>
     </div>`).join('');
@@ -311,7 +322,7 @@ async function renderDomainChart() {
   const max = sorted[0][1];
   el.innerHTML = sorted.map(([domain,count]) =>
     `<div class="bar-row">
-      <span class="bar-label" title="${domain}">${domain}</span>
+      <span class="bar-label" title="${esc(domain)}">${esc(domain)}</span>
       <div class="bar-track"><div class="bar-fill" style="width:${(count/max*100).toFixed(1)}%;background:linear-gradient(90deg,#8b5cf6,#6366f1)"></div></div>
       <span class="bar-n">${count}</span>
     </div>`).join('');
@@ -363,7 +374,7 @@ async function renderEventTable() {
   const cats = [...new Set(allEvents.map(e=>e.category||'Unknown'))].sort();
   const prev = catFilter.value;
   catFilter.innerHTML = '<option value="">All categories</option>' +
-    cats.map(c=>`<option value="${c}"${c===prev?' selected':''}>${c}</option>`).join('');
+    cats.map(c=>`<option value="${esc(c)}"${c===prev?' selected':''}>${esc(c)}</option>`).join('');
   applyFilters();
 }
 
@@ -400,22 +411,22 @@ function applyFilters() {
       : `<span class="badge regex">Regex</span>`;
 
     return `<tr class="${rowClass}" data-idx="${idx}">
-      <td style="color:var(--muted);white-space:nowrap;font-size:12px">${timeStr}</td>
+      <td style="color:var(--muted);white-space:nowrap;font-size:12px">${esc(timeStr)}</td>
       <td>${actionBadge}</td>
-      <td><span class="badge category">${e.category||'Unknown'}</span></td>
+      <td><span class="badge category">${esc(e.category||'Unknown')}</span></td>
       <td>${methodBadge}</td>
-      <td style="font-size:12px">${e.domain||'—'}</td>
-      <td style="color:var(--muted);font-size:12px">${e.source||'—'}</td>
+      <td style="font-size:12px">${esc(e.domain||'—')}</td>
+      <td style="color:var(--muted);font-size:12px">${esc(e.source||'—')}</td>
     </tr>
     <tr class="row-detail" id="detail-${idx}">
       <td colspan="6">
         <div class="row-detail-grid">
-          <div class="row-detail-item"><strong>Full Timestamp</strong>${new Date(e.time||Date.now()).toLocaleString()}</div>
-          <div class="row-detail-item"><strong>Detection Method</strong>${e.detectionMethod||'regex'}</div>
-          <div class="row-detail-item"><strong>Category</strong>${e.category||'Unknown'}</div>
-          <div class="row-detail-item"><strong>Domain</strong>${e.domain||'—'}</div>
-          <div class="row-detail-item"><strong>Source</strong>${e.source||'—'}</div>
-          <div class="row-detail-item"><strong>Action</strong>${e.action||'—'}</div>
+          <div class="row-detail-item"><strong>Full Timestamp</strong>${esc(new Date(e.time||Date.now()).toLocaleString())}</div>
+          <div class="row-detail-item"><strong>Detection Method</strong>${esc(e.detectionMethod||'regex')}</div>
+          <div class="row-detail-item"><strong>Category</strong>${esc(e.category||'Unknown')}</div>
+          <div class="row-detail-item"><strong>Domain</strong>${esc(e.domain||'—')}</div>
+          <div class="row-detail-item"><strong>Source</strong>${esc(e.source||'—')}</div>
+          <div class="row-detail-item"><strong>Action</strong>${esc(e.action||'—')}</div>
         </div>
       </td>
     </tr>`;
@@ -515,9 +526,34 @@ async function loadSettings() {
   }
 }
 
+// "All sites" scope requires the <all_urls> optional host permission. Request
+// it (user gesture = the save click) when turning it on, drop it when off.
+function ensureScopePermission(scope) {
+  return new Promise((resolve) => {
+    if (scope === 'all') {
+      chrome.permissions.request({ origins: ['<all_urls>'] }, (granted) => resolve(granted));
+    } else {
+      chrome.permissions.remove({ origins: ['<all_urls>'] }, () => resolve(true));
+    }
+  });
+}
+
 document.getElementById('saveSettingsBtn')?.addEventListener('click', async () => {
   const mode = document.getElementById('modeSelect').value;
-  const scope = document.getElementById('scopeSelect')?.value || 'llm';
+  let scope = document.getElementById('scopeSelect')?.value || 'llm';
+
+  if (scope === 'all') {
+    const granted = await ensureScopePermission('all');
+    if (!granted) {
+      // Permission denied — fall back to LLM-only so the setting stays honest.
+      scope = 'llm';
+      const scopeSelect = document.getElementById('scopeSelect');
+      if (scopeSelect) scopeSelect.value = 'llm';
+    }
+  } else {
+    await ensureScopePermission('llm');
+  }
+
   const { llmLeakageSettings } = await getStorage(['llmLeakageSettings']);
   await setStorage({ llmLeakageSettings: mergeSettings({ ...(llmLeakageSettings||{}), mode, scope }) });
   const s = document.getElementById('saveStatus');

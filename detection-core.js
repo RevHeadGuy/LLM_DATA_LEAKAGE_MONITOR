@@ -59,9 +59,6 @@
     /-----BEGIN (?:RSA |EC |DSA |OPENSSH )?PRIVATE KEY-----[\s\S]*?-----END (?:RSA |EC |DSA |OPENSSH )?PRIVATE KEY-----/g,
     /(?:mongodb(?:\+srv)?:\/\/|postgres(?:ql)?:\/\/|mysql:\/\/|redis:\/\/|amqp:\/\/|ssh:\/\/)[^\s<>]+/gi,
     /(?:client[_-]?secret|oauth[_-]?token|refresh[_-]?token|bearer)[\s:=]+['"]?[A-Za-z0-9._~+\/-]+=*['"]?/gi,
-    /(?<![A-Za-z0-9])[A-Za-z0-9]{32}(?![A-Za-z0-9])/g,
-    /(?<![A-Za-z0-9])[A-Za-z0-9]{40}(?![A-Za-z0-9])/g,
-    /(?<![A-Za-z0-9])[A-Za-z0-9]{64}(?![A-Za-z0-9])/g,
     /api[_-]?key\s*(?:[:=]|is)\s*['"]?[A-Za-z0-9\-_]{16,}['"]?/gi,
     /secret[_-]?key\s*(?:[:=]|is)\s*['"]?[A-Za-z0-9\-_]{16,}['"]?/gi,
     /access[_-]?token\s*(?:[:=]|is)\s*['"]?[A-Za-z0-9\-_]{16,}['"]?/gi,
@@ -99,11 +96,27 @@
     { pattern: /(?:medical record number|MRN)[-.\s]?[A-Za-z0-9]{3,}/gi, label: 'Medical Record' },
     { pattern: /(?:employee id|EMP)[-.\s]?[A-Za-z0-9]{3,}/gi, label: 'Employee ID' },
     { pattern: /driver['']s\s+license/gi, label: "Driver's License" },
-    { pattern: /passport\s+(?:number\s+)?/gi, label: 'Passport' },
-    { pattern: /(?<![A-Za-z0-9])[A-Za-z0-9]{64}(?![A-Za-z0-9])/g, label: 'Hash / Token' },
-    { pattern: /(?<![A-Za-z0-9])[A-Za-z0-9]{40}(?![A-Za-z0-9])/g, label: 'Hash / Token' },
-    { pattern: /(?<![A-Za-z0-9])[A-Za-z0-9]{32}(?![A-Za-z0-9])/g, label: 'Hash / Token' }
+    { pattern: /passport\s+(?:number\s+)?/gi, label: 'Passport' }
   ];
+
+  // Candidate opaque tokens (32/40/64 alphanumeric chars) are extracted and
+  // vetted by looksLikeSecretToken() instead of matching blindly. This keeps
+  // real credentials while ignoring git SHAs, UUIDs, and base64 chunks.
+  const HASH_CANDIDATE_RE = /(?<![A-Za-z0-9])(?:[A-Za-z0-9]{32}|[A-Za-z0-9]{40}|[A-Za-z0-9]{64})(?![A-Za-z0-9])/g;
+
+  function detectGenericHash(text) {
+    if (!text) return false;
+    HASH_CANDIDATE_RE.lastIndex = 0;
+    let match;
+    while ((match = HASH_CANDIDATE_RE.exec(text)) !== null) {
+      if (looksLikeSecretToken(match[0], text)) {
+        HASH_CANDIDATE_RE.lastIndex = 0;
+        return true;
+      }
+    }
+    HASH_CANDIDATE_RE.lastIndex = 0;
+    return false;
+  }
 
   const NER_LABEL_MAP = {
     LABEL_0: 'O',
@@ -132,6 +145,52 @@
     MISC: 'Named Entity'
   };
 
+  // Keyword cues that make a long opaque string likely to be a real secret
+  // rather than a git SHA, UUID, or base64 chunk pasted into a coding chat.
+  const SECRET_CONTEXT_RE = /(?:api|secret|private|access|auth|bearer|session|refresh|client)?[_\s-]?(?:key|token|secret|password|passwd|pwd|credential|cred|hash|signature|sig|nonce|salt)/i;
+
+  /**
+   * Shannon entropy (bits per character) of a string. Random secrets have high
+   * entropy (~4+); repetitive or low-variety strings score lower.
+   */
+  function shannonEntropy(str) {
+    if (!str) return 0;
+    const freq = Object.create(null);
+    for (const ch of str) freq[ch] = (freq[ch] || 0) + 1;
+    let entropy = 0;
+    const len = str.length;
+    for (const ch in freq) {
+      const p = freq[ch] / len;
+      entropy -= p * Math.log2(p);
+    }
+    return entropy;
+  }
+
+  /**
+   * Decide whether a long opaque alphanumeric token looks like a real secret.
+   * A git SHA (all-hex, often lowercase) or a plain lowercase id should NOT
+   * trip the generic hash rule unless there is a secret keyword nearby.
+   */
+  function looksLikeSecretToken(token, surroundingText) {
+    if (!token) return false;
+    const hasLower = /[a-z]/.test(token);
+    const hasUpper = /[A-Z]/.test(token);
+    const hasDigit = /[0-9]/.test(token);
+    const mixedCaseWithDigits = hasLower && hasUpper && hasDigit;
+
+    // Pure hexadecimal of these lengths is almost always a git SHA (40),
+    // MD5 (32), or SHA-256 (64) checksum — not a credential on its own.
+    const isPureHex = /^[0-9a-fA-F]+$/.test(token);
+
+    const context = typeof surroundingText === 'string' ? surroundingText : token;
+    const hasKeyword = SECRET_CONTEXT_RE.test(context);
+
+    if (hasKeyword) return true;
+    if (isPureHex) return false; // checksum/SHA without any secret cue
+    // No keyword: only flag when the token itself is high-entropy and mixed.
+    return mixedCaseWithDigits && shannonEntropy(token) >= 3.5;
+  }
+
   function resetRegexState(regex) {
     if (regex.global || regex.sticky) {
       regex.lastIndex = 0;
@@ -140,11 +199,12 @@
 
   function containsSensitiveRegex(text) {
     if (!text) return false;
-    return regexPatterns.some((p) => {
+    const patternHit = regexPatterns.some((p) => {
       const result = p.test(text);
       resetRegexState(p);
       return result;
     });
+    return patternHit || detectGenericHash(text);
   }
 
   function matchingCategories(text) {
@@ -155,6 +215,9 @@
         pattern.lastIndex = 0;
         if (!hits.includes(label)) hits.push(label);
       }
+    }
+    if (detectGenericHash(text) && !hits.includes('Hash / Token')) {
+      hits.push('Hash / Token');
     }
     if (!hits.length && containsSensitiveRegex(text)) hits.push('Sensitive Data');
     return hits;
@@ -290,6 +353,9 @@
     regexPatterns,
     containsSensitiveRegex,
     matchingCategories,
+    detectGenericHash,
+    looksLikeSecretToken,
+    shannonEntropy,
     detectCategory,
     mergeSettings,
     categoryGroup,
