@@ -182,8 +182,23 @@ All state is local (`chrome.storage.local`); nothing is sent remotely.
 
 ## 8. Regenerating the diagram image
 
-`LLM Data Leakage Monitor Architecture.png` is the rendered diagram shown in the
-README. When the architecture changes, update the Mermaid sources in this file
-and re-export the PNG (for example by pasting the Section 1 diagram into a
-Mermaid renderer such as the Mermaid Live Editor and exporting at the same
-dimensions). Keep this document as the source of truth; the PNG is a snapshot.
+`LLM Data Leakage Monitor Architecture.png` (the infographic shown in the
+README) is rendered from `architecture.svg`, which is the editable source of
+truth for the image. When the architecture changes, edit `architecture.svg`
+and re-export the PNG at 1536×1024, for example with a headless Chromium:
+
+```bash
+# Wrap the SVG in a minimal HTML page and screenshot it at exact size.
+{ printf '<!doctype html><html><head><meta charset="utf-8">'
+  printf '<style>html,body{margin:0;padding:0}svg{display:block}</style></head><body>'
+  cat architecture.svg
+  printf '</body></html>'; } > /tmp/arch.html
+
+chrome-headless-shell --headless --disable-gpu --hide-scrollbars \
+  --force-device-scale-factor=1 --window-size=1536,1024 \
+  --virtual-time-budget=2000 --default-background-color=FFFFFFFF \
+  --screenshot="LLM Data Leakage Monitor Architecture.png" "file:///tmp/arch.html"
+```
+
+Any SVG→PNG renderer works (headless Chromium, `rsvg-convert`, Inkscape, or an
+online converter); the Mermaid diagrams above remain the conceptual reference.
