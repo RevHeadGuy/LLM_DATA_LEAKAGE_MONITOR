@@ -31,7 +31,7 @@ function loadAll() {
       document.getElementById('sWarned').textContent  = events.filter(e => e.action === 'Warning').length;
       document.getElementById('sToday').textContent   = events.filter(e => now - e.time < day).length;
 
-      ['block', 'warn', 'off'].forEach(m => {
+      ['block', 'redact', 'warn', 'off'].forEach(m => {
         const id  = `mode${m.charAt(0).toUpperCase()}${m.slice(1)}`;
         const btn = document.getElementById(id);
         if (btn) btn.className = `mode-btn${settings.mode === m ? ` active-${m}` : ''}`;

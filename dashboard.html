@@ -452,8 +452,10 @@
     }
     tbody tr:last-child { border-bottom: none; }
     tbody tr:hover { background: var(--surface2); }
-    tbody tr.row-blocked { border-left: 2px solid rgba(244,63,94,0.5); }
-    tbody tr.row-warned  { border-left: 2px solid rgba(245,158,11,0.4); }
+    tbody tr.row-blocked    { border-left: 2px solid rgba(244,63,94,0.5); }
+    tbody tr.row-redacted   { border-left: 2px solid rgba(99,102,241,0.5); }
+    tbody tr.row-overridden { border-left: 2px solid rgba(16,185,129,0.5); }
+    tbody tr.row-warned     { border-left: 2px solid rgba(245,158,11,0.4); }
     tbody td { padding: 12px 18px; font-size: 13px; vertical-align: middle; }
 
     /* expanded row detail */
@@ -477,8 +479,11 @@
       padding: 3px 10px; border-radius: 99px;
       font-size: 11px; font-weight: 600; white-space: nowrap;
     }
-    .badge.blocked  { background: rgba(244,63,94,0.12);  color: #fb7185; border: 1px solid rgba(244,63,94,0.2); }
-    .badge.warning  { background: rgba(245,158,11,0.12); color: #fbbf24; border: 1px solid rgba(245,158,11,0.2); }
+    .badge.blocked    { background: rgba(244,63,94,0.12);  color: #fb7185; border: 1px solid rgba(244,63,94,0.2); }
+    .badge.redacted   { background: rgba(99,102,241,0.12); color: #a5b4fc; border: 1px solid rgba(99,102,241,0.2); }
+    .badge.overridden { background: rgba(16,185,129,0.12); color: #34d399; border: 1px solid rgba(16,185,129,0.2); }
+    .badge.warning    { background: rgba(245,158,11,0.12); color: #fbbf24; border: 1px solid rgba(245,158,11,0.2); }
+    .match-preview    { font-family: monospace; font-size: 11px; color: var(--text2); background: var(--surface3); padding: 2px 7px; border-radius: 6px; border: 1px solid var(--border); }
     .badge.regex    { background: rgba(99,102,241,0.12); color: #818cf8; border: 1px solid rgba(99,102,241,0.2); }
     .badge.bert     { background: rgba(139,92,246,0.12); color: #c4b5fd; border: 1px solid rgba(139,92,246,0.2); }
     .badge.category { background: var(--surface3); color: var(--text2); border: 1px solid var(--border); }
@@ -517,6 +522,25 @@
     .step-num { width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; background: linear-gradient(135deg,var(--accent),var(--accent2)); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; box-shadow: 0 0 12px rgba(99,102,241,0.35); }
     .step-body strong { font-size: 13px; font-weight: 700; display: block; margin-bottom: 3px; }
     .step-body p { font-size: 12px; color: var(--text2); line-height: 1.6; }
+
+    /* custom rules */
+    .rule-form { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .rule-input { padding: 9px 12px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--r-sm); color: var(--text); font-size: 13px; outline: none; font-family: inherit; transition: border-color 0.15s; }
+    .rule-input:focus { border-color: var(--accent); }
+    #ruleName { flex: 1; min-width: 170px; }
+    .rule-type { flex: 0 0 110px; }
+    .rule-pattern { flex: 2; min-width: 200px; font-family: monospace; font-size: 12px; }
+    .rule-form .save-btn { flex: 0 0 auto; }
+    .rule-error { color: var(--danger); font-size: 12px; margin-top: 10px; min-height: 0; }
+    .rule-error:empty { display: none; }
+    .rule-list { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
+    .rule-item { display: flex; align-items: center; gap: 12px; padding: 11px 14px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--r-sm); }
+    .rule-item .ri-name { font-weight: 700; font-size: 13px; flex-shrink: 0; }
+    .rule-item .ri-type { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; padding: 2px 8px; border-radius: 99px; background: rgba(99,102,241,0.15); color: #a5b4fc; border: 1px solid rgba(99,102,241,0.25); flex-shrink: 0; }
+    .rule-item .ri-pattern { flex: 1; font-family: monospace; font-size: 12px; color: var(--text2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .rule-item .ri-del { flex-shrink: 0; background: none; border: 1px solid var(--border); color: var(--text2); border-radius: 7px; padding: 5px 10px; font-size: 12px; cursor: pointer; transition: all 0.15s; font-family: inherit; }
+    .rule-item .ri-del:hover { border-color: rgba(244,63,94,0.4); color: #fb7185; background: rgba(244,63,94,0.08); }
+    .rule-empty { font-size: 13px; color: var(--muted); padding: 14px 0; text-align: center; }
   </style>
 </head>
 <body>
@@ -709,14 +733,14 @@
           <button class="tbl-btn red" id="clearBtn">🗑 Clear All</button>
         </div>
         <div class="filter-row">
-          <select id="filterAction"><option value="">All actions</option><option value="Blocked">Blocked</option><option value="Warning">Warning</option></select>
+          <select id="filterAction"><option value="">All actions</option><option value="Blocked">Blocked</option><option value="Redacted">Redacted</option><option value="Overridden">Overridden</option><option value="Warning">Warning</option></select>
           <select id="filterMethod"><option value="">All methods</option><option value="regex">Regex</option><option value="bert">BERT</option></select>
           <select id="filterCategory"><option value="">All categories</option></select>
           <input type="text" id="filterDomain" placeholder="🔍  Filter by domain…" />
         </div>
         <table>
           <thead>
-            <tr><th>Time</th><th>Action</th><th>Category</th><th>Method</th><th>Domain</th><th>Source</th></tr>
+            <tr><th>Time</th><th>Action</th><th>Category</th><th>Match</th><th>Method</th><th>Domain</th><th>Source</th></tr>
           </thead>
           <tbody id="eventTableBody"></tbody>
         </table>
@@ -736,6 +760,7 @@
             <label for="modeSelect">Active Mode</label>
             <select id="modeSelect">
               <option value="block">🚫  Block — clear input and prevent submission</option>
+              <option value="redact">✂️  Redact — mask sensitive spans and allow sending</option>
               <option value="warn">⚠️  Warn only — highlight but allow typing</option>
               <option value="off">○  Off — disable all detection</option>
             </select>
@@ -801,6 +826,22 @@
               <option value="ignore">Ignore</option>
             </select>
           </div>
+          <div class="form-group">
+            <label for="policySecrets2">Provider keys (GitHub, Slack, Stripe, OpenAI…)</label>
+            <select id="policySecrets2">
+              <option value="block">Block</option>
+              <option value="warn">Warn</option>
+              <option value="ignore">Ignore</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="policyCustom">Custom rules</label>
+            <select id="policyCustom">
+              <option value="block">Block</option>
+              <option value="warn">Warn</option>
+              <option value="ignore">Ignore</option>
+            </select>
+          </div>
           <button class="save-btn" id="savePolicyBtn">Save Policy</button>
           <span class="save-status" id="savePolicyStatus">Saved ✓</span>
         </div>
@@ -814,13 +855,47 @@
           <button class="save-btn" id="saveAllowlistBtn">Save Allowlist</button>
           <span class="save-status" id="saveAllowlistStatus">Saved ✓</span>
         </div>
+        <div class="s-card" style="grid-column: 1 / -1;">
+          <h3>🧩 Custom Detection Rules</h3>
+          <p class="form-hint" style="margin:-8px 0 16px">
+            Add your own regex or keyword rules for internal secret formats, project codenames, or ID schemes.
+            Rules are stored locally and run alongside the built-in patterns. Their action follows the “Custom rules” category policy.
+          </p>
+          <div class="rule-form">
+            <input type="text" id="ruleName" class="rule-input" placeholder="Rule name (e.g. Internal API Key)" maxlength="60" />
+            <select id="ruleType" class="rule-input rule-type">
+              <option value="regex">Regex</option>
+              <option value="keyword">Keyword</option>
+            </select>
+            <input type="text" id="rulePattern" class="rule-input rule-pattern" placeholder="Pattern, e.g. ACME-[A-Z0-9]{20}" />
+            <button class="save-btn" id="addRuleBtn" type="button">Add Rule</button>
+          </div>
+          <div class="rule-error" id="ruleError"></div>
+          <div class="rule-list" id="ruleList"></div>
+          <span class="save-status" id="saveRuleStatus" style="display:block;margin:10px 0 0">Saved ✓</span>
+        </div>
         <div class="s-card">
           <h3>📊 Status</h3>
           <div class="info-row"><span class="info-key">Detection mode</span><span class="info-val" id="infoMode">—</span></div>
           <div class="info-row"><span class="info-key">Coverage</span><span class="info-val" id="infoScope">—</span></div>
           <div class="info-row"><span class="info-key">BERT model</span><span class="info-val" id="infoBert">—</span></div>
           <div class="info-row"><span class="info-key">Allowlisted domains</span><span class="info-val" id="infoAllowlist">—</span></div>
+          <div class="info-row"><span class="info-key">Custom rules</span><span class="info-val" id="infoRules">—</span></div>
           <div class="info-row"><span class="info-key">Events stored</span><span class="info-val" id="infoEvents">—</span></div>
+        </div>
+        <div class="s-card">
+          <h3>💾 Backup &amp; Restore</h3>
+          <p class="form-hint" style="margin:-8px 0 16px">
+            Export your detection mode, category policies, allowlist, and custom rules as a JSON file,
+            or import a configuration to apply it. Event history is not included.
+          </p>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+            <button class="save-btn" id="exportSettingsBtn" type="button">⬆ Export Settings</button>
+            <button class="tbl-btn" id="importSettingsBtn" type="button" style="padding:10px 18px">⬇ Import Settings</button>
+            <input type="file" id="importSettingsFile" accept="application/json,.json" style="display:none" />
+          </div>
+          <div class="rule-error" id="importError"></div>
+          <span class="save-status" id="importStatus" style="display:block;margin:10px 0 0">Imported ✓</span>
         </div>
       </div>
     </div>
@@ -832,18 +907,20 @@
         <div class="s-card">
           <h3>🏗️ Architecture</h3>
           <div class="info-row"><span class="info-key">Extension type</span><span class="info-val">Chrome MV3</span></div>
-          <div class="info-row"><span class="info-key">Version</span><span class="info-val">1.8</span></div>
+          <div class="info-row"><span class="info-key">Version</span><span class="info-val">1.9</span></div>
           <div class="info-row"><span class="info-key">Remote requests</span><span class="info-val good">None — 100% local</span></div>
           <div class="info-row"><span class="info-key">NER model</span><span class="info-val">TinyBERT NER (ONNX, quantized)</span></div>
           <div class="info-row"><span class="info-key">Inference runtime</span><span class="info-val">ONNX Runtime WebAssembly</span></div>
-          <div class="info-row"><span class="info-key">Regex patterns</span><span class="info-val">26 patterns · 15+ categories</span></div>
+          <div class="info-row"><span class="info-key">Regex patterns</span><span class="info-val">35+ patterns · 25+ categories</span></div>
+          <div class="info-row"><span class="info-key">Card validation</span><span class="info-val good">Luhn checksum</span></div>
+          <div class="info-row"><span class="info-key">Custom rules</span><span class="info-val good">User-defined</span></div>
         </div>
         <div class="s-card">
           <h3>🔍 Detection Pipeline</h3>
           <div class="pipeline-step"><div class="step-num">1</div><div class="step-body"><strong>Input Captured</strong><p>Text typed, pasted, or dropped into any web input is intercepted in real time.</p></div></div>
           <div class="pipeline-step"><div class="step-num">2</div><div class="step-body"><strong>Layer 1 — Regex (instant)</strong><p>26 patterns detect SSNs, API keys, emails, JWTs, private keys, connection strings and more.</p></div></div>
           <div class="pipeline-step"><div class="step-num">3</div><div class="step-body"><strong>Layer 2 — BERT NER (offline)</strong><p>TinyBERT detects named entities that regex would miss — entirely on-device.</p></div></div>
-          <div class="pipeline-step"><div class="step-num">4</div><div class="step-body"><strong>Action Taken</strong><p>Block clears the field. Warn highlights it. Every event is logged to <code style="color:#818cf8;font-size:11px">chrome.storage.local</code>.</p></div></div>
+          <div class="pipeline-step"><div class="step-num">4</div><div class="step-body"><strong>Action Taken</strong><p>Block clears the field, Redact masks only the sensitive spans, Warn highlights it. Every event is logged to <code style="color:#818cf8;font-size:11px">chrome.storage.local</code>.</p></div></div>
         </div>
       </div>
     </div>

@@ -6,7 +6,9 @@ const {
   mergeSettings,
   evaluateRegex,
   evaluateNer,
-  hasDisclosureContext
+  hasDisclosureContext,
+  redactText,
+  maskedPreview
 } = window.LdlmDetection;
 
 const { getAdapter, isSendKey, getFieldText, isLlmContext } = window.LdlmAdapters;
@@ -60,7 +62,7 @@ function isAllowedDomain(settings) {
   });
 }
 
-function saveBlockedEvent(action, source = 'input', domain = window.location.hostname, detectionMethod = 'regex', category = 'Unknown') {
+function saveBlockedEvent(action, source = 'input', domain = window.location.hostname, detectionMethod = 'regex', category = 'Unknown', preview = '') {
   chrome.storage.local.get(['llmBlockedEvents'], (result) => {
     const prior = Array.isArray(result.llmBlockedEvents) ? result.llmBlockedEvents : [];
     const next = [
@@ -70,6 +72,7 @@ function saveBlockedEvent(action, source = 'input', domain = window.location.hos
         domain,
         detectionMethod,
         category,
+        preview: preview || '',
         time: Date.now()
       },
       ...prior
@@ -79,9 +82,13 @@ function saveBlockedEvent(action, source = 'input', domain = window.location.hos
   });
 }
 
-function showToast(msg, isWarning = false) {
+function removeToast() {
   const existing = document.getElementById('llm-data-leakage-toast');
   if (existing) existing.remove();
+}
+
+function showToast(msg, isWarning = false) {
+  removeToast();
 
   const t = document.createElement('div');
   t.id = 'llm-data-leakage-toast';
@@ -106,7 +113,85 @@ function showToast(msg, isWarning = false) {
   setTimeout(() => t.remove(), 3000);
 }
 
-function blockInput(el, source = 'input', detectionMethod = 'regex', category = 'Sensitive Data') {
+// Actionable toast shown after a block. Offers Undo (restore the cleared text)
+// and, when a send adapter is present, Send anyway (restore then submit once).
+function showBlockToast(msg, actions = []) {
+  removeToast();
+
+  const t = document.createElement('div');
+  t.id = 'llm-data-leakage-toast';
+
+  Object.assign(t.style, {
+    position: 'fixed',
+    bottom: '30px',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    background: '#d32f2f',
+    color: '#fff',
+    padding: '12px 18px',
+    borderRadius: '8px',
+    fontSize: '15px',
+    boxShadow: '0 2px 10px rgba(0,0,0,0.25)',
+    zIndex: 2147483647,
+    opacity: 0.97,
+    display: 'flex',
+    alignItems: 'center',
+    gap: '14px',
+    maxWidth: '90vw'
+  });
+
+  const label = document.createElement('span');
+  label.textContent = msg;
+  t.appendChild(label);
+
+  let dismissed = false;
+  const dismiss = () => {
+    if (dismissed) return;
+    dismissed = true;
+    t.remove();
+  };
+
+  for (const action of actions) {
+    const btn = document.createElement('button');
+    btn.textContent = action.label;
+    Object.assign(btn.style, {
+      background: 'rgba(255,255,255,0.18)',
+      color: '#fff',
+      border: '1px solid rgba(255,255,255,0.5)',
+      borderRadius: '6px',
+      padding: '5px 12px',
+      fontSize: '13px',
+      fontWeight: '600',
+      cursor: 'pointer',
+      whiteSpace: 'nowrap'
+    });
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      dismiss();
+      try { action.onClick(); } catch (_) { /* ignore */ }
+    });
+    t.appendChild(btn);
+  }
+
+  (document.body || document.documentElement).appendChild(t);
+  // Actionable toasts linger longer so the user has time to react.
+  setTimeout(dismiss, 8000);
+}
+
+function setFieldText(el, value) {
+  if (!el) return;
+  if (el.isContentEditable) {
+    el.innerText = value;
+  } else if ('value' in el) {
+    el.value = value;
+    // Let site frameworks (React/controlled inputs) observe the change.
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+}
+
+function blockInput(el, source = 'input', detectionMethod = 'regex', category = 'Sensitive Data', preview = '', context = {}) {
+  const originalText = context.text != null ? context.text : (el ? getFieldText(el) : '');
   if (el) {
     el.style.backgroundColor = '#ffcccc';
     if (el.isContentEditable) {
@@ -116,16 +201,55 @@ function blockInput(el, source = 'input', detectionMethod = 'regex', category = 
     }
     el.setCustomValidity?.('Sensitive data detected! Input cleared.');
   }
-  saveBlockedEvent('Blocked', source, window.location.hostname, detectionMethod, category);
-  showToast('Sensitive data detected! Input cleared.');
+  saveBlockedEvent('Blocked', source, window.location.hostname, detectionMethod, category, preview);
+
+  // Offer recovery: Undo restores the cleared text; Send anyway restores it and
+  // resumes the send once (used when the user has reviewed a false positive).
+  const actions = [];
+  if (el && originalText) {
+    actions.push({
+      label: 'Undo',
+      onClick: () => {
+        setFieldText(el, originalText);
+        clearBlock(el);
+      }
+    });
+    if (context.adapter) {
+      actions.push({
+        label: 'Send anyway',
+        onClick: () => {
+          setFieldText(el, originalText);
+          clearBlock(el);
+          saveBlockedEvent('Overridden', source, window.location.hostname, detectionMethod, category, preview);
+          setTimeout(() => resumeSend(context.adapter), 60);
+        }
+      });
+    }
+  }
+
+  if (actions.length) {
+    showBlockToast('Sensitive data detected! Input cleared.', actions);
+  } else {
+    showToast('Sensitive data detected! Input cleared.');
+  }
 }
 
-function warnOnly(el, source = 'input', detectionMethod = 'regex', category = 'Sensitive Data') {
+function redactInput(el, source = 'input', detectionMethod = 'regex', category = 'Sensitive Data', redactedCount = 0, preview = '') {
+  if (el) {
+    el.style.backgroundColor = '#fff3cd';
+    el.setCustomValidity?.('Sensitive data redacted before sending.');
+  }
+  saveBlockedEvent('Redacted', source, window.location.hostname, detectionMethod, category, preview);
+  const n = redactedCount || 1;
+  showToast(`Sensitive data redacted (${n} item${n === 1 ? '' : 's'}).`, true);
+}
+
+function warnOnly(el, source = 'input', detectionMethod = 'regex', category = 'Sensitive Data', preview = '') {
   if (el) {
     el.style.backgroundColor = '#fff3cd';
     el.setCustomValidity?.('Sensitive data detected. Warning mode enabled.');
   }
-  saveBlockedEvent('Warning', source, window.location.hostname, detectionMethod, category);
+  saveBlockedEvent('Warning', source, window.location.hostname, detectionMethod, category, preview);
   showToast('Sensitive data detected. Warning mode enabled.', true);
 }
 
@@ -135,14 +259,35 @@ function clearBlock(el) {
   el.setCustomValidity?.('');
 }
 
-function applyVerdict(el, verdict, source, detectionMethod, text, categoryOverride) {
+function applyVerdict(el, verdict, source, detectionMethod, text, categoryOverride, context = {}) {
   const category = categoryOverride
-    || (detectionMethod === 'bert' ? 'PII (NER)' : detectCategory(text));
-  if (verdict === 'warn') {
-    warnOnly(el, source, detectionMethod, category);
+    || (detectionMethod === 'bert' ? 'PII (NER)' : detectCategory(text, settingsCache));
+
+  // Masked preview of the matched value for the event log. Regex/custom hits
+  // have a maskable span; a bert-only disclosure hit does not, so preview is ''.
+  const previewInfo = detectionMethod === 'bert' ? null : maskedPreview(text, settingsCache);
+  const preview = previewInfo ? previewInfo.masked : '';
+
+  // Redact mode: strip the sensitive spans in place and let the rest through.
+  // Regex matches can be masked precisely; a bert-only hit has no span, so we
+  // fall back to warning (the model flags disclosure phrasing, not substrings).
+  if (settingsCache.mode === 'redact') {
+    const { text: redacted, redactedCount } = redactText(text, settingsCache);
+    if (redactedCount > 0 && redacted !== text) {
+      setFieldText(el, redacted);
+      redactInput(el, source, detectionMethod, category, redactedCount, preview);
+      return 'redact';
+    }
+    // Nothing maskable (e.g. NER disclosure phrase) — warn and allow.
+    warnOnly(el, source, detectionMethod, category, preview);
     return 'warn';
   }
-  blockInput(el, source, detectionMethod, category);
+
+  if (verdict === 'warn') {
+    warnOnly(el, source, detectionMethod, category, preview);
+    return 'warn';
+  }
+  blockInput(el, source, detectionMethod, category, preview, { text, adapter: context.adapter });
   return 'block';
 }
 
@@ -263,6 +408,25 @@ const onInput = debounce(async (e) => {
   await processSensitiveText(el, getFieldText(el), 'input');
 }, 700);
 
+// In redact mode, intercept the paste/drop of sensitive text, insert a cleaned
+// version at the caret instead, and report what was masked.
+function redactPastedText(e, el, rawText, source) {
+  const { text: redacted, redactedCount } = redactText(rawText, settingsCache);
+  if (redactedCount === 0) return false;
+  e.preventDefault();
+  const category = detectCategory(rawText, settingsCache);
+  const previewInfo = maskedPreview(rawText, settingsCache);
+  const preview = previewInfo ? previewInfo.masked : '';
+  const inserted = document.execCommand && document.execCommand('insertText', false, redacted);
+  if (!inserted) {
+    // Fallback for fields where execCommand is unavailable.
+    const base = getFieldText(el);
+    setFieldText(el, base ? `${base}${redacted}` : redacted);
+  }
+  redactInput(el, source, 'regex', category, redactedCount, preview);
+  return true;
+}
+
 function onPaste(e) {
   const el = e.target;
   if (!el) return;
@@ -271,12 +435,15 @@ function onPaste(e) {
   if (textToCheck.length < MIN_INPUT_LENGTH) return;
 
   const sync = regexDecision(textToCheck);
-  if (sync.action === 'block') {
-    e.preventDefault();
-    applyVerdict(el, 'block', 'paste', 'regex', textToCheck, sync.category);
-    return;
-  }
-  if (sync.action === 'warn') {
+  if (sync.action === 'block' || sync.action === 'warn') {
+    if (settingsCache.mode === 'redact') {
+      if (redactPastedText(e, el, textToCheck, 'paste')) return;
+    }
+    if (sync.action === 'block') {
+      e.preventDefault();
+      applyVerdict(el, 'block', 'paste', 'regex', textToCheck, sync.category);
+      return;
+    }
     applyVerdict(el, 'warn', 'paste', 'regex', textToCheck, sync.category);
     return;
   }
@@ -289,12 +456,15 @@ function onDrop(e) {
   if (!textToCheck || textToCheck.length < MIN_INPUT_LENGTH) return;
 
   const sync = regexDecision(textToCheck);
-  if (sync.action === 'block') {
-    e.preventDefault();
-    applyVerdict(el, 'block', 'drop', 'regex', textToCheck, sync.category);
-    return;
-  }
-  if (sync.action === 'warn') {
+  if (sync.action === 'block' || sync.action === 'warn') {
+    if (settingsCache.mode === 'redact') {
+      if (redactPastedText(e, el, textToCheck, 'drop')) return;
+    }
+    if (sync.action === 'block') {
+      e.preventDefault();
+      applyVerdict(el, 'block', 'drop', 'regex', textToCheck, sync.category);
+      return;
+    }
     applyVerdict(el, 'warn', 'drop', 'regex', textToCheck, sync.category);
     return;
   }
@@ -330,7 +500,9 @@ async function holdForBertThenSend(el, text, source, adapter) {
     const entities = await checkNerWithPage(text, 2500);
     const ner = evaluateNer(text, entities, settings);
     if (ner.action === 'block') {
-      applyVerdict(el, 'block', source, 'bert', text, ner.category);
+      const result = applyVerdict(el, 'block', source, 'bert', text, ner.category, { adapter });
+      // Redact mode downgrades an unmaskable NER hit to a warning, so let it send.
+      if (result !== 'block') resumeSend(adapter);
       return;
     }
     if (ner.action === 'warn') {
@@ -361,7 +533,12 @@ function guardOutgoing(event, el, text, source, adapter) {
     event.preventDefault();
     event.stopImmediatePropagation();
     lastSendGuardAt = Date.now();
-    applyVerdict(el, 'block', source, 'regex', text, sync.category);
+    const result = applyVerdict(el, 'block', source, 'regex', text, sync.category, { adapter });
+    // In redact mode the field was cleaned in place; resume the send with the
+    // now-safe text so the user doesn't have to press send twice.
+    if (result === 'redact' && adapter) {
+      setTimeout(() => resumeSend(adapter), 60);
+    }
     return true;
   }
 

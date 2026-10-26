@@ -1,7 +1,7 @@
 {
   "name": "llm-data-leakage-monitor",
-  "version": "1.8.0",
-  "description": "Local-first Chrome extension that checks text entered into AI chat sites for secrets and sensitive personal data using regex and an offline TinyBERT NER model.",
+  "version": "1.9.0",
+  "description": "Local-first Chrome extension that checks text entered into AI chat sites for secrets and sensitive personal data using regex, Luhn-validated cards, custom rules, and an offline TinyBERT NER model, with block/redact/warn modes.",
   "license": "MIT",
   "private": true,
   "scripts": {

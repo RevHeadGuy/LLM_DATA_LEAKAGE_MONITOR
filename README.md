@@ -6,16 +6,21 @@ A local-first Chrome extension that checks text entered into AI chat sites for c
 
 ![Chrome Extension](https://img.shields.io/badge/Chrome-Manifest%20V3-4285F4?logo=googlechrome&logoColor=white)
 ![Inference](https://img.shields.io/badge/Inference-Local%20ONNX-005CED)
-![Version](https://img.shields.io/badge/Version-1.8-0EA5E9)
+![Version](https://img.shields.io/badge/Version-1.9-0EA5E9)
 
 ![Project architecture](LLM%20Data%20Leakage%20Monitor%20Architecture.png)
 
 ## What it does
 
-- Scans supported text inputs with regex checks for recognizable secrets and personal data.
+- Scans supported text inputs with regex checks for recognizable secrets and personal data, including provider-specific formats (GitHub, Slack, Stripe, OpenAI, Anthropic, SendGrid, npm, Twilio) and IBANs.
+- Validates payment-card candidates with the Luhn checksum, so long order numbers and IDs are not misreported as cards.
 - Vets long opaque tokens (32/40/64 characters) with a keyword and entropy gate, so git SHAs, UUIDs, and checksums are not flagged unless they look like real credentials.
 - Runs a locally bundled TinyBERT NER model when text matches a supported disclosure cue and regex finds no match.
-- Applies configurable **Block**, **Warn**, or **Off** behavior, plus category-level policies.
+- Applies configurable **Block**, **Redact**, **Warn**, or **Off** behavior, plus category-level policies.
+- Supports **custom detection rules** (regex or keyword) for internal secret formats and project-specific identifiers, managed from the dashboard and stored locally.
+- Offers **Undo** and **Send anyway** actions on a blocked prompt, so a reviewed false positive can be restored or sent without retyping.
+- Records a **masked preview** of the matched value (for example `AKIA**********CDEF`) in the event log for auditing, without ever storing the raw secret.
+- Lets you **export and import** your configuration (mode, policies, allowlist, and custom rules) as a JSON file from the dashboard.
 - Monitors AI chat sites by default; the broader all-sites scope is opt-in and requests a host permission at runtime.
 - Provides a popup and dashboard for settings, local event history, analytics, and CSV export.
 - Keeps up to 200 event records in `chrome.storage.local`.
@@ -24,7 +29,8 @@ A local-first Chrome extension that checks text entered into AI chat sites for c
 
 | Layer | What it checks | Important limits |
 |---|---|---|
-| Regex | Supported formats such as email, phone, SSN, payment-card patterns, AWS and Google API key formats, JWTs, private-key headers, connection strings, and selected credential phrases. Generic 32/40/64-character tokens are only treated as secrets when a nearby keyword cue (for example `api_key`, `token`, `secret`) is present or the token is high-entropy mixed-case with digits | A pattern match does not validate whether a credential is real or active. Unsupported formats can be missed, and the generic-token gate can skip a real secret that lacks a keyword cue and is not high-entropy. |
+| Regex | Supported formats such as email, phone, SSN, Luhn-validated payment cards, AWS and Google API key formats, provider tokens (GitHub, Slack, Stripe, OpenAI, Anthropic, SendGrid, npm, Twilio), IBANs, JWTs, private-key headers, connection strings, and selected credential phrases. Generic 32/40/64-character tokens are only treated as secrets when a nearby keyword cue (for example `api_key`, `token`, `secret`) is present or the token is high-entropy mixed-case with digits | A pattern match does not validate whether a credential is real or active. Unsupported formats can be missed, and the generic-token gate can skip a real secret that lacks a keyword cue and is not high-entropy. |
+| Custom rules | User-defined regex or keyword rules added from the dashboard, run alongside the built-in patterns and governed by the custom-rule category policy | Rules are only as good as the pattern you write; an invalid regex is rejected at save time. |
 | TinyBERT NER | Person, organization, location, and other model entities in text with a matching disclosure cue | General NER is not a dedicated secret detector. Entity score must be above `0.75`, and disclosure checks can miss PII phrased in other ways. |
 
 Regex rules and category labels live in `detection-core.js`. NER decisions also use shared logic there, including label mapping and disclosure checks.
@@ -33,10 +39,10 @@ Regex rules and category labels live in `detection-core.js`. NER decisions also 
 
 | Category group | Default action |
 |---|---|
-| Secrets and identity documents | Block |
+| Secrets, provider keys, identity documents, and custom rules | Block |
 | Generic hashes/tokens, contact details, personal phrases, and NER entities | Warn |
 
-Block mode follows the category action. Warn mode caps blocking actions to warnings; Off disables detection. You can edit category policies and the trusted-domain allowlist in the dashboard.
+Block mode follows the category action and clears the field. Redact mode replaces only the detected spans with labeled placeholders (for example `[EMAIL]`, `[AWS_KEY]`) and lets the rest of the prompt through; a disclosure-cue hit with no maskable value falls back to a warning. Warn mode caps blocking actions to warnings; Off disables detection. You can edit category policies, custom rules, and the trusted-domain allowlist in the dashboard.
 
 ### Site coverage and send handling
 
@@ -60,7 +66,7 @@ flowchart TD
     F --> G{Entity score > 0.75 and disclosure check passes?}
     G -- No --> Z
     G -- Yes --> D
-    D --> H[Block, warn, or ignore]
+    D --> H[Block, redact, warn, or ignore]
     H --> I[Store event metadata locally]
 ```
 
@@ -147,7 +153,7 @@ NER labels are mapped from the model output (`LABEL_0` through `LABEL_8`) to out
 
 ## Privacy and limitations
 
-- Detection history is stored locally in Chrome extension storage. Records contain event metadata such as action, source, domain, detection method, category, and timestamp.
+- Detection history is stored locally in Chrome extension storage. Records contain event metadata such as action (Blocked, Redacted, Overridden, or Warning), source, domain, detection method, category, a masked preview of the matched value, and a timestamp. The masked preview keeps only a few leading/trailing characters and never contains the full secret. Custom rules and exported configuration are stored and handled locally and never leave the browser.
 - The model is fetched from Hugging Face only when you run the optional setup script; normal detection uses the local files.
 - Regex detection only covers implemented formats and can produce false positives or miss unfamiliar values.
 - The generic-token gate reduces false positives on git SHAs, UUIDs, and checksums, but it can also skip a genuine secret that has no nearby keyword cue and is not high-entropy.
