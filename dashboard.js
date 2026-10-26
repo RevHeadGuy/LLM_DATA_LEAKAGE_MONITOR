@@ -402,28 +402,39 @@ function applyFilters() {
     const t = new Date(e.time||Date.now());
     const timeStr = t.toLocaleDateString([],{month:'short',day:'numeric'}) + ' ' +
                     t.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-    const rowClass = e.action==='Blocked' ? 'row-blocked' : 'row-warned';
+    const rowClass = e.action==='Blocked' ? 'row-blocked'
+      : e.action==='Redacted' ? 'row-redacted'
+      : e.action==='Overridden' ? 'row-overridden' : 'row-warned';
     const actionBadge = e.action==='Blocked'
       ? `<span class="badge blocked">🚫 Blocked</span>`
-      : `<span class="badge warning">⚠ Warning</span>`;
+      : e.action==='Redacted'
+        ? `<span class="badge redacted">✂ Redacted</span>`
+        : e.action==='Overridden'
+          ? `<span class="badge overridden">↪ Overridden</span>`
+          : `<span class="badge warning">⚠ Warning</span>`;
     const methodBadge = e.detectionMethod==='bert'
       ? `<span class="badge bert">BERT</span>`
       : `<span class="badge regex">Regex</span>`;
+    const previewCell = e.preview
+      ? `<code class="match-preview">${esc(e.preview)}</code>`
+      : '<span style="color:var(--muted)">—</span>';
 
     return `<tr class="${rowClass}" data-idx="${idx}">
       <td style="color:var(--muted);white-space:nowrap;font-size:12px">${esc(timeStr)}</td>
       <td>${actionBadge}</td>
       <td><span class="badge category">${esc(e.category||'Unknown')}</span></td>
+      <td>${previewCell}</td>
       <td>${methodBadge}</td>
       <td style="font-size:12px">${esc(e.domain||'—')}</td>
       <td style="color:var(--muted);font-size:12px">${esc(e.source||'—')}</td>
     </tr>
     <tr class="row-detail" id="detail-${idx}">
-      <td colspan="6">
+      <td colspan="7">
         <div class="row-detail-grid">
           <div class="row-detail-item"><strong>Full Timestamp</strong>${esc(new Date(e.time||Date.now()).toLocaleString())}</div>
           <div class="row-detail-item"><strong>Detection Method</strong>${esc(e.detectionMethod||'regex')}</div>
           <div class="row-detail-item"><strong>Category</strong>${esc(e.category||'Unknown')}</div>
+          <div class="row-detail-item"><strong>Matched (masked)</strong>${e.preview ? `<code class="match-preview">${esc(e.preview)}</code>` : '—'}</div>
           <div class="row-detail-item"><strong>Domain</strong>${esc(e.domain||'—')}</div>
           <div class="row-detail-item"><strong>Source</strong>${esc(e.source||'—')}</div>
           <div class="row-detail-item"><strong>Action</strong>${esc(e.action||'—')}</div>
@@ -464,10 +475,10 @@ document.getElementById('exportBtn')?.addEventListener('click', async () => {
   btn.textContent = 'Exporting…';
   btn.classList.add('exporting');
 
-  const header = ['Time','Action','Category','Method','Domain','Source'];
+  const header = ['Time','Action','Category','Match','Method','Domain','Source'];
   const rows = events.map(e => {
     return [new Date(e.time||Date.now()).toISOString(), e.action,
-      e.category||'Unknown', e.detectionMethod||'regex', e.domain||'', e.source||'']
+      e.category||'Unknown', e.preview||'', e.detectionMethod||'regex', e.domain||'', e.source||'']
       .map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',');
   });
 
@@ -504,18 +515,24 @@ async function loadSettings() {
     policyTokens: 'tokens',
     policyContact: 'contact',
     policyPersonal: 'personal',
-    policyNer: 'ner'
+    policyNer: 'ner',
+    policySecrets2: 'secrets2',
+    policyCustom: 'custom'
   };
   Object.entries(policyMap).forEach(([id, group]) => {
     const el = document.getElementById(id);
     if (el) el.value = settings.categoryActions[group] || 'warn';
   });
 
-  const modeLabels = { block:'Block', warn:'Warn only', off:'Off' };
+  renderRuleList(settings.customRules || []);
+
+  const modeLabels = { block:'Block', redact:'Redact', warn:'Warn only', off:'Off' };
   document.getElementById('infoMode').textContent      = modeLabels[settings.mode]||settings.mode;
   const infoScope = document.getElementById('infoScope');
   if (infoScope) infoScope.textContent = settings.scope === 'all' ? 'All sites' : 'LLM sites only';
   document.getElementById('infoAllowlist').textContent = (settings.allowlist||[]).length || 'None';
+  const infoRules = document.getElementById('infoRules');
+  if (infoRules) infoRules.textContent = (settings.customRules||[]).length || 'None';
   document.getElementById('infoEvents').textContent    = events.length;
 
   const infoBert = document.getElementById('infoBert');
@@ -570,7 +587,9 @@ document.getElementById('savePolicyBtn')?.addEventListener('click', async () => 
     tokens: document.getElementById('policyTokens').value,
     contact: document.getElementById('policyContact').value,
     personal: document.getElementById('policyPersonal').value,
-    ner: document.getElementById('policyNer').value
+    ner: document.getElementById('policyNer').value,
+    secrets2: document.getElementById('policySecrets2').value,
+    custom: document.getElementById('policyCustom').value
   };
   await setStorage({ llmLeakageSettings: mergeSettings({ ...(llmLeakageSettings||{}), categoryActions }) });
   const s = document.getElementById('savePolicyStatus');
@@ -586,6 +605,150 @@ document.getElementById('saveAllowlistBtn')?.addEventListener('click', async () 
   const s = document.getElementById('saveAllowlistStatus');
   s.classList.add('show'); setTimeout(()=>s.classList.remove('show'),2000);
   loadSettings();
+});
+
+// ─── Custom rules ─────────────────────────────────────────────────────────────
+function renderRuleList(rules) {
+  const el = document.getElementById('ruleList');
+  if (!el) return;
+  if (!rules.length) {
+    el.innerHTML = '<div class="rule-empty">No custom rules yet. Add one above.</div>';
+    return;
+  }
+  el.innerHTML = rules.map((r, i) =>
+    `<div class="rule-item">
+      <span class="ri-name">${esc(r.name)}</span>
+      <span class="ri-type">${esc(r.type)}</span>
+      <span class="ri-pattern" title="${esc(r.pattern)}">${esc(r.pattern)}</span>
+      <button class="ri-del" data-idx="${i}" type="button">Delete</button>
+    </div>`).join('');
+
+  el.querySelectorAll('.ri-del').forEach(btn => {
+    btn.addEventListener('click', () => deleteRule(Number(btn.dataset.idx)));
+  });
+}
+
+function showRuleError(msg) {
+  const el = document.getElementById('ruleError');
+  if (el) el.textContent = msg || '';
+}
+
+function flashRuleSaved() {
+  const s = document.getElementById('saveRuleStatus');
+  if (s) { s.classList.add('show'); setTimeout(() => s.classList.remove('show'), 2000); }
+}
+
+document.getElementById('addRuleBtn')?.addEventListener('click', async () => {
+  showRuleError('');
+  const name = document.getElementById('ruleName').value.trim();
+  const type = document.getElementById('ruleType').value === 'keyword' ? 'keyword' : 'regex';
+  const pattern = document.getElementById('rulePattern').value.trim();
+
+  if (!pattern) { showRuleError('Pattern is required.'); return; }
+  if (type === 'regex') {
+    try {
+      new RegExp(pattern);
+    } catch (err) {
+      showRuleError('Invalid regular expression: ' + err.message);
+      return;
+    }
+  }
+
+  const { llmLeakageSettings } = await getStorage(['llmLeakageSettings']);
+  const current = mergeSettings(llmLeakageSettings);
+  const next = [...(current.customRules || []), { name: name || 'Custom Rule', type, pattern }];
+  await setStorage({ llmLeakageSettings: mergeSettings({ ...current, customRules: next }) });
+
+  document.getElementById('ruleName').value = '';
+  document.getElementById('rulePattern').value = '';
+  flashRuleSaved();
+  loadSettings();
+});
+
+async function deleteRule(idx) {
+  const { llmLeakageSettings } = await getStorage(['llmLeakageSettings']);
+  const current = mergeSettings(llmLeakageSettings);
+  const next = (current.customRules || []).filter((_, i) => i !== idx);
+  await setStorage({ llmLeakageSettings: mergeSettings({ ...current, customRules: next }) });
+  flashRuleSaved();
+  loadSettings();
+}
+
+// ─── Settings backup / restore ─────────────────────────────────────────────────
+document.getElementById('exportSettingsBtn')?.addEventListener('click', async () => {
+  const { llmLeakageSettings } = await getStorage(['llmLeakageSettings']);
+  const settings = mergeSettings(llmLeakageSettings);
+  const payload = {
+    type: 'llm-data-leakage-monitor-settings',
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    settings: {
+      mode: settings.mode,
+      scope: settings.scope,
+      allowlist: settings.allowlist,
+      categoryActions: settings.categoryActions,
+      customRules: settings.customRules
+    }
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url;
+  a.download = `llm-monitor-settings-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+function showImportError(msg) {
+  const el = document.getElementById('importError');
+  if (el) el.textContent = msg || '';
+}
+
+document.getElementById('importSettingsBtn')?.addEventListener('click', () => {
+  showImportError('');
+  document.getElementById('importSettingsFile')?.click();
+});
+
+document.getElementById('importSettingsFile')?.addEventListener('change', (e) => {
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async () => {
+    try {
+      const parsed = JSON.parse(String(reader.result || ''));
+      // Accept either the wrapped export shape or a bare settings object.
+      const raw = parsed && parsed.settings ? parsed.settings : parsed;
+      if (!raw || typeof raw !== 'object') throw new Error('Unrecognized file format.');
+
+      // mergeSettings validates and sanitizes everything (drops bad rules,
+      // normalizes mode/scope), so an untrusted file can't inject bad state.
+      const clean = mergeSettings(raw);
+
+      if (!confirm('Import this configuration? It will replace your current mode, policies, allowlist, and custom rules.')) {
+        return;
+      }
+
+      // "All sites" scope needs the broad permission; if we can't get it, keep LLM-only.
+      if (clean.scope === 'all') {
+        const granted = await ensureScopePermission('all');
+        if (!granted) clean.scope = 'llm';
+      } else {
+        await ensureScopePermission('llm');
+      }
+
+      await setStorage({ llmLeakageSettings: clean });
+      const s = document.getElementById('importStatus');
+      if (s) { s.classList.add('show'); setTimeout(() => s.classList.remove('show'), 2500); }
+      loadSettings();
+      if (quickToggle) quickToggle.checked = clean.mode !== 'off';
+    } catch (err) {
+      showImportError('Could not import: ' + err.message);
+    } finally {
+      e.target.value = '';
+    }
+  };
+  reader.onerror = () => showImportError('Could not read the selected file.');
+  reader.readAsText(file);
 });
 
 // ─── Overview ─────────────────────────────────────────────────────────────────

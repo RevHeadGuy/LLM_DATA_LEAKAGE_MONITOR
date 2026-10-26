@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "LLM Data Leakage Monitor",
-  "version": "1.8",
-  "description": "Detects and blocks sensitive data using regex and offline BERT-tiny NER model with page context injection.",
+  "version": "1.9",
+  "description": "Detects, redacts, or blocks sensitive data using regex, custom rules, and an offline BERT-tiny NER model with page context injection.",
   "permissions": ["scripting", "activeTab", "storage", "tabs"],
   "host_permissions": [
     "https://chatgpt.com/*",

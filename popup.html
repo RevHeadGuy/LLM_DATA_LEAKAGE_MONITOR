@@ -84,17 +84,18 @@
       text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px;
     }
 
-    .mode-buttons { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+    .mode-buttons { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
     .mode-btn {
-      padding: 7px 4px; border-radius: 7px; font-size: 11px; font-weight: 600;
+      padding: 7px 2px; border-radius: 7px; font-size: 10.5px; font-weight: 600;
       border: 1px solid var(--border); background: var(--surface2);
       color: var(--muted); cursor: pointer; text-align: center;
       transition: all 0.15s;
     }
     .mode-btn:hover { border-color: var(--accent); color: var(--text); }
-    .mode-btn.active-block { background: rgba(239,68,68,0.15); border-color: var(--danger); color: var(--danger); }
-    .mode-btn.active-warn  { background: rgba(245,158,11,0.15); border-color: var(--warn);   color: var(--warn); }
-    .mode-btn.active-off   { background: rgba(136,146,176,0.1); border-color: var(--muted);  color: var(--muted); }
+    .mode-btn.active-block  { background: rgba(239,68,68,0.15); border-color: var(--danger); color: var(--danger); }
+    .mode-btn.active-redact { background: rgba(79,110,247,0.15); border-color: var(--accent); color: var(--accent); }
+    .mode-btn.active-warn   { background: rgba(245,158,11,0.15); border-color: var(--warn);   color: var(--warn); }
+    .mode-btn.active-off    { background: rgba(136,146,176,0.1); border-color: var(--muted);  color: var(--muted); }
     .scope-row {
       display: flex; align-items: center; gap: 8px;
       margin-top: 10px; font-size: 11px; color: var(--muted); cursor: pointer;
@@ -160,9 +161,10 @@
 <div class="section">
   <div class="section-label">Detection Mode</div>
   <div class="mode-buttons">
-    <button class="mode-btn" data-mode="block" id="modeBlock">🚫 Block</button>
-    <button class="mode-btn" data-mode="warn"  id="modeWarn">⚠ Warn</button>
-    <button class="mode-btn" data-mode="off"   id="modeOff">○ Off</button>
+    <button class="mode-btn" data-mode="block"  id="modeBlock">🚫 Block</button>
+    <button class="mode-btn" data-mode="redact" id="modeRedact">✂ Redact</button>
+    <button class="mode-btn" data-mode="warn"   id="modeWarn">⚠ Warn</button>
+    <button class="mode-btn" data-mode="off"    id="modeOff">○ Off</button>
   </div>
   <label class="scope-row" for="scopeLlmOnly">
     <input type="checkbox" id="scopeLlmOnly" checked />
