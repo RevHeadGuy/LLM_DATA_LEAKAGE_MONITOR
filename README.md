@@ -10,6 +10,8 @@ A local-first Chrome extension that checks text entered into AI chat sites for c
 
 ![Project architecture](LLM%20Data%20Leakage%20Monitor%20Architecture.png)
 
+> Design docs: [Architecture](ARCHITECTURE.md) · [High-Level Design](HLD.md) · [Low-Level Design](LLD.md)
+
 ## What it does
 
 - Scans supported text inputs with regex checks for recognizable secrets and personal data, including provider-specific formats (GitHub, Slack, Stripe, OpenAI, Anthropic, SendGrid, npm, Twilio) and IBANs.
@@ -136,6 +138,7 @@ For manual checks, load the extension and visit a supported AI chat site, then t
 | `eslint.config.js` | ESLint flat config for the extension and test sources |
 | `.github/workflows/ci.yml` | CI workflow that runs lint and unit tests |
 | `download_model.py` | Optional model downloader |
+| `ARCHITECTURE.md`, `HLD.md`, `LLD.md` | Architecture overview, high-level design, and low-level design docs |
 
 ## Model and implementation notes
 
