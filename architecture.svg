@@ -1,0 +1,322 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1536" height="1024" viewBox="0 0 1536 1024" font-family="Helvetica, Arial, sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f3f7ff"/>
+      <stop offset="1" stop-color="#eef3fb"/>
+    </linearGradient>
+    <linearGradient id="extHeader" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#2f52d6"/>
+      <stop offset="1" stop-color="#3b63e8"/>
+    </linearGradient>
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="115%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#1b2a55" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+
+  <rect width="1536" height="1024" fill="url(#bg)"/>
+
+  <!-- ===== Title ===== -->
+  <g>
+    <rect x="470" y="22" width="60" height="60" rx="14" fill="#2f52d6"/>
+    <path d="M500 32 l22 8 v14 c0 13 -9 21 -22 26 c-13 -5 -22 -13 -22 -26 v-14 z" fill="#8aa6ff"/>
+    <path d="M490 52 l7 7 l14 -15" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="548" y="52" font-size="34" font-weight="700" fill="#1b2a55">LLM Data Leakage Monitor</text>
+    <text x="548" y="80" font-size="20" font-weight="600" fill="#7a8bb3">Architecture</text>
+
+    <rect x="1130" y="22" width="384" height="68" rx="12" fill="#e9fbf4" stroke="#b6ecd8"/>
+    <rect x="1146" y="40" width="30" height="30" rx="7" fill="#17b980"/>
+    <rect x="1153" y="52" width="16" height="12" rx="2" fill="#ffffff"/>
+    <path d="M1156 52 v-4 a5 5 0 0 1 10 0 v4" fill="none" stroke="#ffffff" stroke-width="3"/>
+    <text x="1188" y="44" font-size="16" font-weight="700" fill="#0f5c43">Local-First. Your Data Stays in Your Browser.</text>
+    <text x="1188" y="64" font-size="13" fill="#2f6b55">Detection runs entirely in the browser.</text>
+    <text x="1188" y="81" font-size="13" fill="#2f6b55">No prompt text is sent to any remote service.</text>
+  </g>
+
+  <!-- ===== Supported sites strip ===== -->
+  <g>
+    <rect x="22" y="108" width="1492" height="104" rx="16" fill="#eef4ff" stroke="#d6e2fb"/>
+    <circle cx="66" cy="160" r="18" fill="none" stroke="#2f52d6" stroke-width="3"/>
+    <path d="M48 160 h36 M66 142 v36 M52 150 q14 10 28 0 M52 170 q14 -10 28 0" stroke="#2f52d6" stroke-width="2" fill="none"/>
+    <text x="100" y="152" font-size="18" font-weight="700" fill="#1b2a55">Supported</text>
+    <text x="100" y="172" font-size="18" font-weight="700" fill="#1b2a55">AI Chat Sites</text>
+    <text x="100" y="192" font-size="12" fill="#6b7aa0">(LLM-Only by default)</text>
+
+    <!-- site chips -->
+    <g font-size="14" font-weight="600" fill="#1b2a55" text-anchor="middle">
+      <g><rect x="258" y="124" width="96" height="72" rx="12" fill="#ffffff" stroke="#e2e8f5"/><text x="306" y="182">ChatGPT</text></g>
+      <g><rect x="360" y="124" width="96" height="72" rx="12" fill="#ffffff" stroke="#e2e8f5"/><text x="408" y="182">Claude</text></g>
+      <g><rect x="462" y="124" width="96" height="72" rx="12" fill="#ffffff" stroke="#e2e8f5"/><text x="510" y="182">Gemini</text></g>
+      <g><rect x="564" y="124" width="96" height="72" rx="12" fill="#ffffff" stroke="#e2e8f5"/><text x="612" y="182">Copilot</text></g>
+      <g><rect x="666" y="124" width="96" height="72" rx="12" fill="#ffffff" stroke="#e2e8f5"/><text x="714" y="182">Grok</text></g>
+      <g><rect x="768" y="124" width="104" height="72" rx="12" fill="#ffffff" stroke="#e2e8f5"/><text x="820" y="182">Perplexity</text></g>
+      <g><rect x="878" y="124" width="84" height="72" rx="12" fill="#ffffff" stroke="#e2e8f5"/><text x="920" y="182">Poe</text></g>
+      <g><rect x="968" y="124" width="96" height="72" rx="12" fill="#ffffff" stroke="#e2e8f5"/><text x="1016" y="182">You.com</text></g>
+      <g><rect x="1070" y="124" width="84" height="72" rx="12" fill="#ffffff" stroke="#e2e8f5"/><text x="1112" y="182">Phind</text></g>
+      <g><rect x="1160" y="124" width="112" height="72" rx="12" fill="#ffffff" stroke="#e2e8f5"/><text x="1216" y="182">Character.AI</text></g>
+      <g><rect x="1278" y="124" width="104" height="72" rx="12" fill="#ffffff" stroke="#e2e8f5"/><text x="1330" y="182">DeepSeek</text></g>
+      <g><rect x="1388" y="124" width="60" height="72" rx="12" fill="#ffffff" stroke="#e2e8f5"/><text x="1418" y="178" font-size="12">Mistral</text></g>
+      <g><rect x="1452" y="124" width="56" height="72" rx="12" fill="#ffffff" stroke="#e2e8f5"/><text x="1480" y="178" font-size="12">Meta AI</text></g>
+    </g>
+  </g>
+
+  <!-- arrow sites -> extension -->
+  <g>
+    <line x1="768" y1="214" x2="768" y2="256" stroke="#2f52d6" stroke-width="3"/>
+    <path d="M768 262 l-7 -10 h14 z" fill="#2f52d6"/>
+    <text x="784" y="232" font-size="13" font-weight="600" fill="#2f4a9e">User types or clicks send</text>
+    <text x="784" y="249" font-size="13" font-weight="600" fill="#2f4a9e">in a supported input</text>
+  </g>
+
+  <!-- ===== Chrome Extension container ===== -->
+  <rect x="22" y="268" width="1368" height="586" rx="18" fill="#e7eefb" stroke="#cdddf7"/>
+  <rect x="22" y="268" width="1368" height="52" rx="18" fill="url(#extHeader)"/>
+  <rect x="22" y="300" width="1368" height="20" fill="url(#extHeader)"/>
+  <circle cx="54" cy="294" r="13" fill="#ffffff"/>
+  <circle cx="54" cy="294" r="6" fill="#4285f4"/>
+  <text x="80" y="301" font-size="21" font-weight="700" fill="#ffffff">Chrome Extension (Manifest V3)</text>
+
+  <!-- ---- Content Script ---- -->
+  <g>
+    <rect x="40" y="336" width="318" height="400" rx="14" fill="#f6f2fe" stroke="#e2d6fb" filter="url(#shadow)"/>
+    <rect x="58" y="352" width="30" height="30" rx="7" fill="#7c4dff"/>
+    <text x="98" y="366" font-size="16" font-weight="700" fill="#4a2b8f">Content Script</text>
+    <text x="98" y="383" font-size="12" fill="#7a6aa3">(input &amp; send handling)</text>
+
+    <g font-size="13" fill="#3f3560">
+      <rect x="58" y="396" width="282" height="56" rx="9" fill="#ffffff" stroke="#ece4fb"/>
+      <text x="80" y="420">Monitor text inputs,</text>
+      <text x="80" y="438">paste, drop &amp; send events</text>
+
+      <rect x="58" y="460" width="282" height="56" rx="9" fill="#ffffff" stroke="#ece4fb"/>
+      <text x="80" y="484">Site adapters</text>
+      <text x="80" y="502">(ChatGPT, Claude)</text>
+
+      <rect x="58" y="524" width="282" height="56" rx="9" fill="#ffffff" stroke="#ece4fb"/>
+      <text x="80" y="548">Apply verdict: block /</text>
+      <text x="80" y="566">redact / warn</text>
+
+      <rect x="58" y="588" width="282" height="56" rx="9" fill="#ffffff" stroke="#ece4fb"/>
+      <text x="80" y="612">Recoverable toast:</text>
+      <text x="80" y="630">Undo / Send anyway</text>
+
+      <rect x="58" y="652" width="282" height="56" rx="9" fill="#ffffff" stroke="#ece4fb"/>
+      <text x="80" y="676">Respect scope and</text>
+      <text x="80" y="694">allowlist settings</text>
+    </g>
+  </g>
+
+  <!-- extract text arrow -->
+  <line x1="358" y1="470" x2="400" y2="470" stroke="#2f52d6" stroke-width="3"/>
+  <path d="M406 470 l-10 -7 v14 z" fill="#2f52d6"/>
+  <text x="360" y="458" font-size="12" font-weight="600" fill="#2f4a9e">Extract text</text>
+
+  <!-- ---- Detection Core ---- -->
+  <g>
+    <rect x="408" y="336" width="700" height="476" rx="14" fill="#eef1fb" stroke="#d4ddf5" filter="url(#shadow)"/>
+    <rect x="426" y="352" width="30" height="30" rx="7" fill="#5b43d6"/>
+    <text x="466" y="372" font-size="17" font-weight="700" fill="#33277f">Detection Core (In Browser)</text>
+
+    <!-- 1 Regex -->
+    <rect x="426" y="392" width="318" height="256" rx="12" fill="#fdeef0" stroke="#f7cfd6"/>
+    <circle cx="448" cy="414" r="9" fill="none" stroke="#d6455e" stroke-width="3"/>
+    <line x1="455" y1="421" x2="462" y2="428" stroke="#d6455e" stroke-width="3"/>
+    <text x="470" y="410" font-size="15" font-weight="700" fill="#b02a43">1. Regex Detection</text>
+    <text x="470" y="426" font-size="11" fill="#9a5563">(fast, synchronous)</text>
+    <g font-size="12.5" fill="#6a2d3b">
+      <text x="444" y="452">• Emails, phone, SSN</text>
+      <text x="444" y="474">• Luhn-validated payment cards</text>
+      <text x="444" y="496">• AWS / Google API keys</text>
+      <text x="444" y="518">• Provider keys: GitHub, Slack,</text>
+      <text x="458" y="534">Stripe, OpenAI, Anthropic, npm…</text>
+      <text x="444" y="556">• IBAN, JWTs, private keys, DB URLs</text>
+      <text x="444" y="578">• Generic 32/40/64 tokens</text>
+      <text x="458" y="594">(keyword + entropy gate)</text>
+      <text x="444" y="616">• Custom rules (regex / keyword)</text>
+      <text x="444" y="638">• Selected credential phrases</text>
+    </g>
+
+    <!-- 2 NER -->
+    <rect x="772" y="392" width="318" height="256" rx="12" fill="#eaf1fe" stroke="#c7dafb"/>
+    <rect x="792" y="402" width="24" height="20" rx="5" fill="#2f6bd6"/>
+    <text x="826" y="410" font-size="15" font-weight="700" fill="#1f4aa0">2. TinyBERT NER</text>
+    <text x="826" y="426" font-size="11" fill="#5476ab">(local ONNX inference)</text>
+    <g font-size="12.5" fill="#28406e">
+      <rect x="788" y="440" width="288" height="44" rx="8" fill="#ffffff" stroke="#d9e5fb"/>
+      <text x="804" y="458">Locally bundled model</text>
+      <text x="804" y="476">(Transformers.js + ONNX)</text>
+      <rect x="788" y="492" width="288" height="44" rx="8" fill="#ffffff" stroke="#d9e5fb"/>
+      <text x="804" y="510">Detects persons, organizations,</text>
+      <text x="804" y="528">locations, and more</text>
+      <rect x="788" y="544" width="288" height="36" rx="8" fill="#ffffff" stroke="#d9e5fb"/>
+      <text x="804" y="567">Entity score &gt; 0.75</text>
+      <rect x="788" y="588" width="288" height="44" rx="8" fill="#ffffff" stroke="#d9e5fb"/>
+      <text x="804" y="606">Disclosure-cue checks and</text>
+      <text x="804" y="624">label mapping</text>
+    </g>
+
+    <!-- no-match arrow -->
+    <line x1="744" y1="500" x2="770" y2="500" stroke="#2f6bd6" stroke-width="3"/>
+    <path d="M776 500 l-10 -7 v14 z" fill="#2f6bd6"/>
+    <text x="724" y="472" font-size="11" font-weight="600" fill="#2f4a9e" text-anchor="middle">No match +</text>
+    <text x="724" y="486" font-size="11" font-weight="600" fill="#2f4a9e" text-anchor="middle">disclosure cue</text>
+
+    <!-- match found arrow down -->
+    <line x1="585" y1="648" x2="585" y2="672" stroke="#d6455e" stroke-width="3"/>
+    <path d="M585 678 l-7 -10 h14 z" fill="#d6455e"/>
+    <text x="600" y="666" font-size="12" font-weight="700" fill="#b02a43">Match found</text>
+
+    <!-- entity detected arrow down -->
+    <line x1="931" y1="648" x2="931" y2="672" stroke="#2f6bd6" stroke-width="3"/>
+    <path d="M931 678 l-7 -10 h14 z" fill="#2f6bd6"/>
+    <text x="820" y="666" font-size="12" font-weight="700" fill="#1f4aa0">Entity detected</text>
+
+    <!-- 3 Policy -->
+    <rect x="426" y="684" width="664" height="112" rx="12" fill="#fff7e4" stroke="#f3dca0"/>
+    <rect x="444" y="696" width="26" height="26" rx="6" fill="#e0a52a"/>
+    <text x="480" y="708" font-size="15" font-weight="700" fill="#9a6a10">3. Policy Engine</text>
+    <text x="480" y="724" font-size="11" fill="#9a7a3a">(block, redact, warn, or ignore)</text>
+    <g font-size="12">
+      <rect x="444" y="734" width="112" height="52" rx="8" fill="#fde7e9" stroke="#f3c2c9"/>
+      <text x="500" y="756" text-anchor="middle" font-weight="700" fill="#b02a43">Block</text>
+      <text x="500" y="773" text-anchor="middle" fill="#8a4450">clear input</text>
+
+      <rect x="562" y="734" width="112" height="52" rx="8" fill="#e8ecff" stroke="#c3cdfb"/>
+      <text x="618" y="756" text-anchor="middle" font-weight="700" fill="#3a46b0">Redact</text>
+      <text x="618" y="773" text-anchor="middle" fill="#4a56a0">mask spans</text>
+
+      <rect x="680" y="734" width="100" height="52" rx="8" fill="#fff0d6" stroke="#f3d79a"/>
+      <text x="730" y="756" text-anchor="middle" font-weight="700" fill="#9a6a10">Warn</text>
+      <text x="730" y="773" text-anchor="middle" fill="#9a7a3a">allow send</text>
+
+      <rect x="786" y="734" width="92" height="52" rx="8" fill="#eef1f6" stroke="#d2d9e4"/>
+      <text x="832" y="756" text-anchor="middle" font-weight="700" fill="#5a6577">Off</text>
+      <text x="832" y="773" text-anchor="middle" fill="#6a7486">no action</text>
+
+      <rect x="888" y="730" width="188" height="60" rx="8" fill="#fffaf0" stroke="#f0e2bf"/>
+      <text x="902" y="748" font-size="11.5" font-weight="700" fill="#8a6a1a">Category-based policies</text>
+      <text x="902" y="765" font-size="10.5" fill="#7a6630">Secrets, provider keys, identity,</text>
+      <text x="902" y="779" font-size="10.5" fill="#7a6630">custom rules → Block · rest → Warn</text>
+    </g>
+  </g>
+
+  <!-- ---- Service Worker ---- -->
+  <g>
+    <rect x="1130" y="336" width="242" height="214" rx="14" fill="#edfaf3" stroke="#c7ecd8" filter="url(#shadow)"/>
+    <rect x="1148" y="352" width="28" height="28" rx="7" fill="#17a06a"/>
+    <text x="1186" y="366" font-size="15" font-weight="700" fill="#0f6e49">Service Worker</text>
+    <text x="1186" y="382" font-size="11" fill="#4a8a70">(background)</text>
+    <g font-size="11.5" fill="#2f5c47">
+      <text x="1148" y="414">• Extension lifecycle</text>
+      <text x="1148" y="438">• Manage settings &amp;</text>
+      <text x="1162" y="453">permissions</text>
+      <text x="1148" y="477">• Relay model status</text>
+      <text x="1148" y="501">• Register/unregister</text>
+      <text x="1162" y="516">content scripts</text>
+      <text x="1162" y="534">(LLM-only / all-sites)</text>
+    </g>
+  </g>
+
+  <!-- settings/control arrows -->
+  <g stroke="#3a46b0" stroke-width="2" stroke-dasharray="6 5" fill="none">
+    <line x1="1108" y1="430" x2="1128" y2="430"/>
+    <line x1="1108" y1="470" x2="1128" y2="470"/>
+  </g>
+  <path d="M1128 430 l-10 -5 v10 z" fill="#3a46b0"/>
+  <path d="M1108 470 l10 -5 v10 z" fill="#3a46b0"/>
+  <text x="1118" y="418" font-size="10.5" font-weight="600" fill="#3a46b0" text-anchor="middle">Settings</text>
+  <text x="1118" y="490" font-size="10.5" font-weight="600" fill="#3a46b0" text-anchor="middle">Model status</text>
+
+  <!-- ---- Page-Injection Module ---- -->
+  <g>
+    <rect x="1130" y="560" width="242" height="176" rx="14" fill="#fdeef0" stroke="#f7cfd6" filter="url(#shadow)"/>
+    <rect x="1148" y="576" width="28" height="28" rx="7" fill="#d6455e"/>
+    <text x="1186" y="590" font-size="15" font-weight="700" fill="#b02a43">Page-Injection</text>
+    <text x="1186" y="606" font-size="11" fill="#b5707c">(ONNX inference)</text>
+    <g font-size="11.5" fill="#6a2d3b">
+      <text x="1148" y="638">• Run ONNX inference</text>
+      <text x="1162" y="653">in page context</text>
+      <text x="1148" y="677">• Bundled Transformers.js</text>
+      <text x="1162" y="692">+ WebAssembly</text>
+      <text x="1148" y="716">• Keep all processing local</text>
+    </g>
+  </g>
+
+  <!-- run inference arrow -->
+  <g stroke="#d6455e" stroke-width="2" stroke-dasharray="6 5" fill="none">
+    <line x1="1092" y1="600" x2="1128" y2="620"/>
+  </g>
+  <path d="M1128 620 l-11 -2 l4 -9 z" fill="#d6455e"/>
+  <text x="1108" y="596" font-size="10.5" font-weight="600" fill="#b02a43" text-anchor="middle">Run local</text>
+  <text x="1108" y="610" font-size="10.5" font-weight="600" fill="#b02a43" text-anchor="middle">inference</text>
+
+  <!-- store event metadata arrow -->
+  <g stroke="#17a06a" stroke-width="2.5" fill="none">
+    <path d="M180 736 v96 h230"/>
+  </g>
+  <path d="M416 832 l-12 -5 v10 z" fill="#17a06a"/>
+  <text x="250" y="826" font-size="12" font-weight="600" fill="#0f6e49">Store event metadata</text>
+
+  <!-- ===== Local Event Storage ===== -->
+  <g>
+    <rect x="22" y="840" width="392" height="162" rx="14" fill="#edfaf3" stroke="#c7ecd8" filter="url(#shadow)"/>
+    <ellipse cx="60" cy="872" rx="16" ry="7" fill="#17a06a"/>
+    <path d="M44 872 v16 a16 7 0 0 0 32 0 v-16" fill="#17a06a" fill-opacity="0.5"/>
+    <text x="92" y="868" font-size="16" font-weight="700" fill="#0f6e49">Local Event Storage</text>
+    <text x="92" y="886" font-size="12" fill="#4a8a70">(chrome.storage.local)</text>
+    <g font-size="12.5" fill="#2f5c47">
+      <text x="44" y="922">• Event metadata + masked match</text>
+      <text x="58" y="939">preview (up to 200 records)</text>
+      <text x="44" y="965">• No prompt text or raw secret</text>
+      <text x="58" y="982">is ever stored or sent</text>
+    </g>
+  </g>
+
+  <!-- ===== Extension UI ===== -->
+  <g>
+    <rect x="432" y="840" width="676" height="162" rx="14" fill="#eaf1fe" stroke="#c7dafb" filter="url(#shadow)"/>
+    <rect x="450" y="856" width="28" height="28" rx="7" fill="#2f6bd6"/>
+    <text x="488" y="870" font-size="16" font-weight="700" fill="#1f4aa0">Extension UI</text>
+    <text x="488" y="887" font-size="12" fill="#5476ab">(popup &amp; dashboard)</text>
+    <g font-size="12" fill="#28406e">
+      <rect x="450" y="900" width="208" height="40" rx="8" fill="#ffffff" stroke="#d9e5fb"/>
+      <text x="466" y="925">Modes: Block / Redact / Warn / Off</text>
+      <rect x="666" y="900" width="200" height="40" rx="8" fill="#ffffff" stroke="#d9e5fb"/>
+      <text x="682" y="925">Category &amp; custom-rule policies</text>
+      <rect x="874" y="900" width="216" height="40" rx="8" fill="#ffffff" stroke="#d9e5fb"/>
+      <text x="890" y="925">Trusted-domain allowlist</text>
+
+      <rect x="450" y="948" width="208" height="40" rx="8" fill="#ffffff" stroke="#d9e5fb"/>
+      <text x="466" y="973">Analytics &amp; event history</text>
+      <rect x="666" y="948" width="200" height="40" rx="8" fill="#ffffff" stroke="#d9e5fb"/>
+      <text x="682" y="973">CSV export · JSON backup</text>
+      <rect x="874" y="948" width="216" height="40" rx="8" fill="#ffffff" stroke="#d9e5fb"/>
+      <text x="890" y="973">Scope (LLM-only / all-sites)</text>
+    </g>
+  </g>
+
+  <!-- ===== Optional All-Sites Scope ===== -->
+  <g>
+    <rect x="1130" y="760" width="384" height="242" rx="14" fill="#f4f8ff" stroke="#9db6ea" stroke-dasharray="7 5"/>
+    <circle cx="1166" cy="792" r="15" fill="none" stroke="#2f52d6" stroke-width="3"/>
+    <path d="M1151 792 h30 M1166 777 v30 M1154 784 q12 8 24 0 M1154 800 q12 -8 24 0" stroke="#2f52d6" stroke-width="1.6" fill="none"/>
+    <text x="1192" y="788" font-size="15" font-weight="700" fill="#2f4a9e">Optional All-Sites Scope</text>
+    <text x="1192" y="805" font-size="11" fill="#5a6ba3">(opt-in at runtime)</text>
+    <g font-size="12" fill="#39507e">
+      <text x="1150" y="838">• Requests all_urls permission</text>
+      <text x="1164" y="854">with a user gesture</text>
+      <text x="1150" y="882">• Registers a dynamic content</text>
+      <text x="1164" y="898">script for all pages</text>
+      <text x="1150" y="926">• Can be turned off to return to</text>
+      <text x="1164" y="942">LLM-only and remove the</text>
+      <text x="1164" y="958">permission</text>
+    </g>
+  </g>
+
+  <!-- permission request arrow -->
+  <g stroke="#3a46b0" stroke-width="2" stroke-dasharray="6 5" fill="none">
+    <line x1="1108" y1="880" x2="1128" y2="880"/>
+  </g>
+  <path d="M1128 880 l-10 -5 v10 z" fill="#3a46b0"/>
+  <text x="1118" y="868" font-size="10.5" font-weight="600" fill="#3a46b0" text-anchor="middle">Permission</text>
+  <text x="1118" y="896" font-size="10.5" font-weight="600" fill="#3a46b0" text-anchor="middle">request</text>
+</svg>
