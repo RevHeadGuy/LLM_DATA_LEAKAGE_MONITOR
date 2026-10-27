@@ -8,7 +8,6 @@ A local-first Chrome extension that checks text entered into AI chat sites for c
 ![Inference](https://img.shields.io/badge/Inference-Local%20ONNX-005CED)
 ![Version](https://img.shields.io/badge/Version-1.9-0EA5E9)
 
-![Project architecture](LLM%20Data%20Leakage%20Monitor%20Architecture.png)
 
 > Design docs: [Architecture](ARCHITECTURE.md) · [High-Level Design](HLD.md) · [Low-Level Design](LLD.md)
 
